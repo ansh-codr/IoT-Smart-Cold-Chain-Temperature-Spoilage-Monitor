@@ -1,11 +1,11 @@
 {
   "name": "cold-chain-simulator",
   "version": "1.0.0",
-  "description": "Smart Cold Chain Monitor — Simulator (scaffold only, logic in a future phase)",
+  "description": "Smart Cold Chain Monitor — Simulator",
   "type": "module",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js"
-  },
-  "dependencies": {}
+    "start": "node src/index.js",
+    "test": "node --test tests/*.test.js"
+  }
 }
