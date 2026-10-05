@@ -1,33 +1,59 @@
-/**
- * routes/stream.js — GET /api/stream (Server-Sent Events)
- *
- * SCAFFOLD STUB — to be implemented by the backend logic agent.
- *
- * Key SSE rules (from AGENTS.md and API_CONTRACT.md):
- * - Set correct headers before writing any data.
- * - Send `: keep-alive` comment every SSE_KEEPALIVE_MS milliseconds.
- * - Register req.on('close', cleanup) to prevent memory leaks.
- * - Import the sseManager from realtime/sseManager.js to register/deregister clients.
- */
-
 import { Router } from 'express';
 import { validate } from '../middleware/validate.js';
 import { GetStreamQuerySchema } from '../config/schemas.js';
+import * as sseManager from '../realtime/sseManager.js';
+import * as stateRepo from '../db/stateRepo.js';
+import * as readingsRepo from '../db/readingsRepo.js';
+import * as alertsRepo from '../db/alertsRepo.js';
+import { computeRemaining } from '../services/decayModel.js';
+import { pool } from '../db/pool.js';
 
 export const streamRouter = Router();
 
-// GET /api/stream?device_id=
-streamRouter.get('/stream', validate(GetStreamQuerySchema, 'query'), (req, res) => {
-  // TODO: implement SSE using realtime/sseManager.js
-  // Required headers for SSE:
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  res.setHeader('X-Accel-Buffering', 'no');
+streamRouter.get('/stream', validate(GetStreamQuerySchema, 'query'), async (req, res, next) => {
+  try {
+    const { device_id } = req.query;
 
-  res.write(': SSE scaffold — not yet implemented\n\n');
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+      'X-Accel-Buffering': 'no'
+    });
 
-  req.on('close', () => {
-    // TODO: deregister client from sseManager
-  });
+    sseManager.addClient(device_id, res);
+
+    req.on('close', () => {
+      sseManager.removeClient(device_id, res);
+    });
+
+    // Send initial status event on connect
+    try {
+      const deviceData = await stateRepo.getDeviceWithProfile(device_id);
+      const state = await stateRepo.getState(pool, device_id);
+      
+      if (deviceData && deviceData.profile && state) {
+        const rem = computeRemaining(state.consumed_life_hours, deviceData.profile);
+        const now = Math.floor(Date.now() / 1000);
+        const activeAlert = await alertsRepo.getPrimaryOpenAlert(device_id);
+        
+        sseManager.broadcast(device_id, 'status', {
+          device_id,
+          online: (now - state.last_ts) <= 30,
+          remaining_life_hours: rem.remaining_life_hours,
+          remaining_life_percent: rem.remaining_life_percent,
+          rate_factor: Number(state.last_rate_factor),
+          active_alert: activeAlert ? {
+            ...activeAlert,
+            peak_value: activeAlert.peak_value !== null ? Number(activeAlert.peak_value) : null
+          } : null
+        });
+      }
+    } catch (err) {
+      console.error('Failed to send initial status on connect', err);
+    }
+
+  } catch (err) {
+    next(err);
+  }
 });
