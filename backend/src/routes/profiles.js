@@ -1,18 +1,24 @@
-/**
- * routes/profiles.js — GET /api/profiles
- *
- * SCAFFOLD STUB — to be implemented by the backend logic agent.
- */
-
 import { Router } from 'express';
+import * as stateRepo from '../db/stateRepo.js';
 
 export const profilesRouter = Router();
 
-// GET /api/profiles — returns all product profiles
-profilesRouter.get('/profiles', async (_req, res, next) => {
+profilesRouter.get('/profiles', async (req, res, next) => {
   try {
-    // TODO: call profilesService.listProfiles()
-    res.status(501).json({ error: { code: 'NOT_IMPLEMENTED', message: 'profiles not yet implemented' } });
+    const profiles = await stateRepo.listProfiles();
+    
+    // Cast numeric types correctly
+    const formatted = profiles.map(p => ({
+      ...p,
+      t_ref_c: Number(p.t_ref_c),
+      t_min_c: Number(p.t_min_c),
+      t_max_c: Number(p.t_max_c),
+      shelf_life_hours_at_ref: Number(p.shelf_life_hours_at_ref),
+      q10: Number(p.q10),
+      ea_kj_per_mol: Number(p.ea_kj_per_mol),
+    }));
+
+    res.json({ profiles: formatted });
   } catch (err) {
     next(err);
   }
