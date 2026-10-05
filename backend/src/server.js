@@ -8,6 +8,7 @@
 
 import 'dotenv/config';
 import app from './app.js';
+import { startOfflineWatcher, stopOfflineWatcher } from './services/offlineWatcher.js';
 
 const HOST = process.env.HOST ?? '0.0.0.0';
 const PORT = parseInt(process.env.PORT ?? '3000', 10);
@@ -15,12 +16,14 @@ const PORT = parseInt(process.env.PORT ?? '3000', 10);
 const server = app.listen(PORT, HOST, () => {
   console.log(`[server] Listening on http://${HOST}:${PORT}`);
   console.log(`[server] Decay model: ${process.env.DECAY_MODEL ?? 'arrhenius'}`);
+  startOfflineWatcher();
 });
 
 // Graceful shutdown: close the HTTP server and DB pool on SIGTERM/SIGINT.
 // This matters when running under nodemon or Docker.
 const shutdown = (signal) => {
   console.log(`[server] ${signal} received — shutting down gracefully`);
+  stopOfflineWatcher();
   server.close(async () => {
     try {
       const { pool } = await import('./db/pool.js');
