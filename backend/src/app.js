@@ -26,17 +26,24 @@ app.use(express.json({ limit: '1mb' }));
 // Health check — outside /api prefix, lightweight, no DB dependency
 app.use('/', healthRouter);
 
-// API routes — will be added by the backend implementation agent
-// import { readingsRouter }  from './routes/readings.js';
-// import { statusRouter }    from './routes/status.js';
-// import { alertsRouter }    from './routes/alerts.js';
-// import { profilesRouter }  from './routes/profiles.js';
-// import { devicesRouter }   from './routes/devices.js';
-// import { streamRouter }    from './routes/stream.js';
-// import { reportRouter }    from './routes/report.js';
-// import { simRouter }       from './routes/sim.js';
-// app.use('/api', readingsRouter);
-// ... etc.
+// API routes — implemented in Phase 2
+import { readingsRouter }  from './routes/readings.js';
+import { statusRouter }    from './routes/status.js';
+import { alertsRouter }    from './routes/alerts.js';
+import { profilesRouter }  from './routes/profiles.js';
+import { devicesRouter }   from './routes/devices.js';
+import { streamRouter }    from './routes/stream.js';
+import { reportRouter }    from './routes/report.js';
+import { simRouter }       from './routes/sim.js';
+
+app.use('/api', readingsRouter);
+app.use('/api', statusRouter);
+app.use('/api', alertsRouter);
+app.use('/api', profilesRouter);
+app.use('/api/devices', devicesRouter); // specific prefix for devices (/:device_id/profile)
+app.use('/api', streamRouter);
+app.use('/api', reportRouter);
+app.use('/api', simRouter);
 
 // ── Central Error Handler ─────────────────────────────────────────────────────
 // Must be registered LAST so it catches errors from all routes above.
