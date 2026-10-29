@@ -201,7 +201,7 @@ export default function App() {
         {connState === 'reconnecting' && !status && (
           <div className="bg-zinc-800/80 border border-zinc-700/50 rounded-xl px-5 py-4 text-zinc-400 text-sm flex items-center gap-3">
             <Loader2 size={16} className="animate-spin text-amber-400" />
-            Waiting for backend at <code className="text-amber-300 bg-zinc-900/60 px-1.5 py-0.5 rounded text-xs">localhost:3000</code>…
+            Waiting for backend at <code className="text-amber-300 bg-zinc-900/60 px-1.5 py-0.5 rounded text-xs">localhost:5000</code>…
           </div>
         )}
 

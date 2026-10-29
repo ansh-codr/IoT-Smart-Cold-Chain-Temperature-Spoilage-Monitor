@@ -176,7 +176,7 @@ CREATE TABLE IF NOT EXISTS alerts (
 -- Replace with validated values before research/production use.
 -- ============================================================
 
-INSERT INTO product_profiles
+INSERT IGNORE INTO product_profiles
   (name, t_ref_c, t_min_c, t_max_c, shelf_life_hours_at_ref, q10, ea_kj_per_mol, voc_baseline, voc_spoil_delta)
 VALUES
   -- Dairy (e.g. pasteurised milk)

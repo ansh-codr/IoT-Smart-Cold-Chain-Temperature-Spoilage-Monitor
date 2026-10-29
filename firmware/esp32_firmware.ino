@@ -41,7 +41,7 @@
 // Change SERVER_IP to the LAN IP shown by `ipconfig getifaddr en0` on your Mac.
 const char* WIFI_SSID     = "Airtel_Ansh_Yadav";
 const char* WIFI_PASS     = "Anshrao2311@";
-const char* SERVER_URL    = "http://192.168.1.3:3000/api/readings";
+const char* SERVER_URL    = "http://192.168.1.3:5000/api/readings";
 const char* DEVICE_ID     = "node-01";
 
 // ─── Timing Configuration ────────────────────────────────────────────────────
