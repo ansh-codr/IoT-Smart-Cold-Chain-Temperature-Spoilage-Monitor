@@ -108,3 +108,4 @@ export function tempBadge(color) {
 export function vocBadge(color) {
   return { green: 'Fresh', amber: 'Elevated', red: 'Spoilage Risk', gray: '—' }[color] || '—'
 }
+

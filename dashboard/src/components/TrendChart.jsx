@@ -235,3 +235,4 @@ export function TrendChart({ readings = [], profile = null }) {
     </div>
   )
 }
+

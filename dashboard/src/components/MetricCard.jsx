@@ -68,3 +68,4 @@ export function MetricCard({ type, label, value, unit, badge, badgeColor, subLab
     </div>
   )
 }
+

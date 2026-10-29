@@ -90,3 +90,4 @@ export function ShelfLifeGauge({ percent = 0, remainingHours = null, rateFactor 
     </div>
   )
 }
+
