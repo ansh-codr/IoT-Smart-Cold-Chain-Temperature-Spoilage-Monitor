@@ -42,9 +42,16 @@ statusRouter.get('/status', validate(GetStatusQuerySchema, 'query'), async (req,
     // In mysql2, boolean usually returns 0/1, so we cast to boolean.
     if (latestReading) {
       latestReading.buffered = Boolean(latestReading.buffered);
-      // Ensure temp_c etc are numbers
       latestReading.temp_c = Number(latestReading.temp_c);
-      latestReading.humidity = Number(latestReading.humidity);
+      latestReading.ds18b20_temp_c = latestReading.ds18b20_temp_c !== null && latestReading.ds18b20_temp_c !== undefined
+        ? Number(latestReading.ds18b20_temp_c)
+        : null;
+      latestReading.dht22_temp_c = latestReading.dht22_temp_c !== null && latestReading.dht22_temp_c !== undefined
+        ? Number(latestReading.dht22_temp_c)
+        : null;
+      latestReading.humidity = latestReading.humidity !== null && latestReading.humidity !== undefined
+        ? Number(latestReading.humidity)
+        : null;
       latestReading.voc_raw = Number(latestReading.voc_raw);
     }
     

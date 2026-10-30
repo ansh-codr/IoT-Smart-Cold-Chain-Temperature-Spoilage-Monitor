@@ -55,6 +55,8 @@ Idempotent on `(device_id, seq)` — duplicate entries are silently ignored and 
   "device_id": "esp32-001",
   "ts": 1717200000,
   "temp_c": 4.3,
+  "ds18b20_temp_c": 4.3,
+  "dht22_temp_c": 4.5,
   "humidity": 78.5,
   "voc_raw": 512,
   "seq": 42,
@@ -70,6 +72,8 @@ Idempotent on `(device_id, seq)` — duplicate entries are silently ignored and 
     "device_id": "esp32-001",
     "ts": 1717199700,
     "temp_c": 3.9,
+    "ds18b20_temp_c": 3.9,
+    "dht22_temp_c": 4.0,
     "humidity": 77.0,
     "voc_raw": 490,
     "seq": 40,
@@ -79,6 +83,8 @@ Idempotent on `(device_id, seq)` — duplicate entries are silently ignored and 
     "device_id": "esp32-001",
     "ts": 1717199760,
     "temp_c": 4.1,
+    "ds18b20_temp_c": 4.1,
+    "dht22_temp_c": 4.2,
     "humidity": 77.5,
     "voc_raw": 498,
     "seq": 41,
@@ -93,8 +99,10 @@ Idempotent on `(device_id, seq)` — duplicate entries are silently ignored and 
 |---|---|---|---|
 | `device_id` | string | ✅ | Max 64 chars; must match a row in `devices` table |
 | `ts` | integer | ✅ | Unix seconds UTC; must be > 0 |
-| `temp_c` | number | ✅ | −40.0 to 85.0 °C |
-| `humidity` | number | ✅ | 0.0 to 100.0 %RH |
+| `temp_c` | number | ✅ | −40.0 to 85.0 °C (primary temperature used by decay & alerts) |
+| `ds18b20_temp_c` | number or null | ❌ | −55.0 to 125.0 °C; optional independent DS18B20 reading |
+| `dht22_temp_c` | number or null | ❌ | −40.0 to 80.0 °C; optional independent DHT22 reading |
+| `humidity` | number or null | ❌ | 0.0 to 100.0 %RH; DHT22 humidity |
 | `voc_raw` | integer | ✅ | 0 to 4095 (12-bit ADC) |
 | `seq` | integer | ✅ | Monotonically increasing per device; ≥ 0 |
 | `buffered` | boolean | ✅ | `true` if reading was stored offline and is being sent late |
@@ -154,6 +162,8 @@ Results are returned **ascending by `ts`**.
       "id": 101,
       "ts": 1717199700,
       "temp_c": 3.9,
+      "ds18b20_temp_c": 3.9,
+      "dht22_temp_c": 4.0,
       "humidity": 77.0,
       "voc_raw": 490,
       "seq": 40,
@@ -164,6 +174,8 @@ Results are returned **ascending by `ts`**.
       "id": 102,
       "ts": 1717199760,
       "temp_c": 4.1,
+      "ds18b20_temp_c": 4.1,
+      "dht22_temp_c": 4.2,
       "humidity": 77.5,
       "voc_raw": 498,
       "seq": 41,
@@ -207,6 +219,8 @@ Returns the latest reading and computed shelf-life state for a device.
   "latest_reading": {
     "ts": 1717200000,
     "temp_c": 4.3,
+    "ds18b20_temp_c": 4.3,
+    "dht22_temp_c": 4.5,
     "humidity": 78.5,
     "voc_raw": 512,
     "seq": 42,

@@ -70,12 +70,13 @@ export function OverviewView({ onNavigate, liveReadings = [] }) {
 
   // Determine freshness of IoT telemetry
   const readingAgeS = telemetry?.last_seen_ts ? (serverTime - telemetry.last_seen_ts) : null;
-  const isTelemetryLive = readingAgeS !== null && readingAgeS <= 35;
-  const isTelemetryStale = readingAgeS !== null && readingAgeS > 35 && readingAgeS <= 300;
-  const isTelemetryUnavailable = readingAgeS === null || readingAgeS > 300;
+  const liveLatest = liveReadings.length > 0 ? liveReadings[liveReadings.length - 1] : null;
+  const isTelemetryLive = liveLatest ? true : (readingAgeS !== null && readingAgeS <= 35);
+  const isTelemetryStale = !liveLatest && readingAgeS !== null && readingAgeS > 35 && readingAgeS <= 300;
+  const isTelemetryUnavailable = !liveLatest && (readingAgeS === null || readingAgeS > 300);
 
-  // Primary sensor metrics
-  const latestR = telemetry?.latest_reading;
+  // Primary sensor metrics (prefer real-time live SSE readings over polled snapshot)
+  const latestR = liveLatest || telemetry?.latest_reading;
   const profile = telemetry?.profile;
   const tColor = tempColor(latestR?.temp_c, profile);
   const vColor = vocColor(latestR?.voc_raw, profile);

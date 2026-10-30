@@ -58,3 +58,4 @@ SET @preparedStatement = (SELECT IF(
 PREPARE alterHumidityNullable FROM @preparedStatement;
 EXECUTE alterHumidityNullable;
 DEALLOCATE PREPARE alterHumidityNullable;
+

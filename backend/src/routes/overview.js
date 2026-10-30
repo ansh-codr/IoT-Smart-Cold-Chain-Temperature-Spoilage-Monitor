@@ -74,7 +74,7 @@ overviewRouter.get('/overview', requireAuth, async (req, res, next) => {
 
     if (primaryDevice) {
       const [latestReadings] = await pool.execute(
-        `SELECT seq, ts, temp_c, humidity, voc_raw, buffered
+        `SELECT seq, ts, temp_c, ds18b20_temp_c, dht22_temp_c, humidity, voc_raw, buffered
            FROM readings
           WHERE device_id = ?
           ORDER BY ts DESC, seq DESC
@@ -83,10 +83,18 @@ overviewRouter.get('/overview', requireAuth, async (req, res, next) => {
       );
 
       const latestReading = latestReadings[0] ? {
-        seq: latestReadings[0].seq,
+        seq: Number(latestReadings[0].seq),
         ts: Number(latestReadings[0].ts),
         temp_c: Number(latestReadings[0].temp_c),
-        humidity: Number(latestReadings[0].humidity),
+        ds18b20_temp_c: latestReadings[0].ds18b20_temp_c !== null && latestReadings[0].ds18b20_temp_c !== undefined
+          ? Number(latestReadings[0].ds18b20_temp_c)
+          : null,
+        dht22_temp_c: latestReadings[0].dht22_temp_c !== null && latestReadings[0].dht22_temp_c !== undefined
+          ? Number(latestReadings[0].dht22_temp_c)
+          : null,
+        humidity: latestReadings[0].humidity !== null && latestReadings[0].humidity !== undefined
+          ? Number(latestReadings[0].humidity)
+          : null,
         voc_raw: Number(latestReadings[0].voc_raw),
         buffered: Boolean(latestReadings[0].buffered === 1 || latestReadings[0].buffered === true)
       } : null;
