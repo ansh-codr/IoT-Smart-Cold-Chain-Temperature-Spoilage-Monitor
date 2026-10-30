@@ -1,9 +1,8 @@
 /**
  * app.js — Express application factory
  *
- * Why separated from server.js: allows tests to import the app
- * without binding a port. Also keeps middleware wiring visible
- * in one place without mixing I/O concerns.
+ * Keeps startup concerns separate from Express route wiring.
+ * Extends the existing IoT APIs with ColdChain IQ multi-tenant features.
  */
 
 import express from 'express';
@@ -11,22 +10,7 @@ import cors from 'cors';
 import { healthRouter } from './routes/health.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
-const app = express();
-
-// ── Middleware ────────────────────────────────────────────────────────────────
-
-// Allow cross-origin requests (required for the dashboard served by Vite dev server)
-app.use(cors());
-
-// Parse JSON request bodies; limit size to prevent large-payload attacks
-app.use(express.json({ limit: '1mb' }));
-
-// ── Routes ────────────────────────────────────────────────────────────────────
-
-// Health check — outside /api prefix, lightweight, no DB dependency
-app.use('/', healthRouter);
-
-// API routes — implemented in Phase 2
+// Existing IoT core routes
 import { readingsRouter }  from './routes/readings.js';
 import { statusRouter }    from './routes/status.js';
 import { alertsRouter }    from './routes/alerts.js';
@@ -36,17 +20,42 @@ import { streamRouter }    from './routes/stream.js';
 import { reportRouter }    from './routes/report.js';
 import { simRouter }       from './routes/sim.js';
 
+// ColdChain IQ extended management routes
+import { authRouter }        from './routes/auth.js';
+import { overviewRouter }    from './routes/overview.js';
+import { inventoryRouter }   from './routes/inventory.js';
+import { shipmentsRouter }   from './routes/shipments.js';
+import { replacementRouter } from './routes/replacement.js';
+import { adminRouter }       from './routes/admin.js';
+
+const app = express();
+
+// ── Middleware ────────────────────────────────────────────────────────────────
+app.use(cors());
+app.use(express.json({ limit: '2mb' }));
+
+// ── Routes ────────────────────────────────────────────────────────────────────
+app.use('/', healthRouter);
+
+// Existing sensor ingestion & realtime routes
 app.use('/api', readingsRouter);
 app.use('/api', statusRouter);
 app.use('/api', alertsRouter);
 app.use('/api', profilesRouter);
-app.use('/api/devices', devicesRouter); // specific prefix for devices (/:device_id/profile)
+app.use('/api/devices', devicesRouter);
 app.use('/api', streamRouter);
 app.use('/api', reportRouter);
 app.use('/api', simRouter);
 
+// Platform & enterprise routes
+app.use('/api', authRouter);
+app.use('/api', overviewRouter);
+app.use('/api', inventoryRouter);
+app.use('/api', shipmentsRouter);
+app.use('/api', replacementRouter);
+app.use('/api', adminRouter);
+
 // ── Central Error Handler ─────────────────────────────────────────────────────
-// Must be registered LAST so it catches errors from all routes above.
 app.use(errorHandler);
 
 export default app;
