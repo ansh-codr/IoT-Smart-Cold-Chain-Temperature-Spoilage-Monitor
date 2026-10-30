@@ -84,7 +84,7 @@ export async function requireAuth(req, res, next) {
         await pool.execute(
           `INSERT IGNORE INTO organization_members (org_id, user_id, role, joined_at)
            VALUES (?, ?, ?, ?)`,
-          [orgRows[0].id, newUserId, isFirst ? 'platform_admin' : 'operator', now]
+          [orgRows[0].id, newUserId, 'platform_admin', now]
         );
       }
     }

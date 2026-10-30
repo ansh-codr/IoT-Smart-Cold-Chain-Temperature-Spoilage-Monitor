@@ -21,49 +21,49 @@ export function AdminView() {
   }, []);
 
   if (loading) {
-    return <div className="p-8 text-zinc-400">Loading system administration telemetry...</div>;
+    return <div className="p-8 text-[#A3A3A3]">Loading system administration telemetry...</div>;
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-            <ShieldAlert size={22} className="text-rose-400" />
+          <h2 className="text-xl font-bold text-[#F5F5F5] tracking-tight flex items-center gap-2">
+            <ShieldAlert size={22} className="text-[#A31C18]" />
             <span>Platform Administration &amp; Governance</span>
           </h2>
-          <p className="text-xs text-zinc-400 mt-1">Multi-tenant isolation, user accounts, and immutable audit logs.</p>
+          <p className="text-xs text-[#A3A3A3] mt-1">Multi-tenant isolation, user accounts, and immutable audit logs.</p>
         </div>
       </div>
 
       {/* Platform Totals */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800">
-          <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Organizations</p>
-          <p className="text-2xl font-extrabold text-white mt-1">{data?.total_organizations ?? 0}</p>
+        <div className="p-4 rounded-xl bg-[#1E1E1E] border border-[#333333]">
+          <p className="text-xs font-semibold text-[#A3A3A3] uppercase tracking-wider">Organizations</p>
+          <p className="text-2xl font-extrabold text-[#F5F5F5] font-mono mt-1">{data?.total_organizations ?? 0}</p>
         </div>
-        <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800">
-          <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Provisioned Users</p>
-          <p className="text-2xl font-extrabold text-white mt-1">{data?.total_users ?? 0}</p>
+        <div className="p-4 rounded-xl bg-[#1E1E1E] border border-[#333333]">
+          <p className="text-xs font-semibold text-[#A3A3A3] uppercase tracking-wider">Provisioned Users</p>
+          <p className="text-2xl font-extrabold text-[#F5F5F5] font-mono mt-1">{data?.total_users ?? 0}</p>
         </div>
-        <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800">
-          <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Registered IoT Nodes</p>
-          <p className="text-2xl font-extrabold text-white mt-1">{data?.total_devices ?? 0}</p>
+        <div className="p-4 rounded-xl bg-[#1E1E1E] border border-[#333333]">
+          <p className="text-xs font-semibold text-[#A3A3A3] uppercase tracking-wider">Registered IoT Nodes</p>
+          <p className="text-2xl font-extrabold text-[#F5F5F5] font-mono mt-1">{data?.total_devices ?? 0}</p>
         </div>
-        <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800">
-          <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Total Shipments Run</p>
-          <p className="text-2xl font-extrabold text-white mt-1">{data?.total_shipments ?? 0}</p>
+        <div className="p-4 rounded-xl bg-[#1E1E1E] border border-[#333333]">
+          <p className="text-xs font-semibold text-[#A3A3A3] uppercase tracking-wider">Total Shipments Run</p>
+          <p className="text-2xl font-extrabold text-[#F5F5F5] font-mono mt-1">{data?.total_shipments ?? 0}</p>
         </div>
       </div>
 
       {/* Users Management */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-sm">
-        <div className="px-5 py-4 border-b border-zinc-800">
-          <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Platform User Directory</h3>
+      <div className="bg-[#1E1E1E] border border-[#333333] rounded-xl overflow-hidden shadow-sm">
+        <div className="px-5 py-4 border-b border-[#333333]">
+          <h3 className="text-xs font-bold text-[#A3A3A3] uppercase tracking-widest">Platform User Directory</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-zinc-950/60 text-zinc-400 border-b border-zinc-800 font-semibold">
+            <thead className="bg-[#242424] text-[#A3A3A3] border-b border-[#333333] font-semibold">
               <tr>
                 <th className="px-4 py-3">User</th>
                 <th className="px-4 py-3">System Role</th>
@@ -72,22 +72,22 @@ export function AdminView() {
                 <th className="px-4 py-3">Registered At</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
+            <tbody className="divide-y divide-[#333333] text-[#F5F5F5]">
               {users.map(u => (
-                <tr key={u.id} className="hover:bg-zinc-800/30 transition-colors">
-                  <td className="px-4 py-3 font-medium text-white">{u.email}</td>
+                <tr key={u.id} className="hover:bg-[#242424]/60 transition-colors">
+                  <td className="px-4 py-3 font-medium text-[#F5F5F5]">{u.email}</td>
                   <td className="px-4 py-3">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-rose-500/15 text-rose-300 border border-rose-500/30">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-[#A31C18]/15 text-[#A31C18] border border-[#A31C18]/30">
                       {u.system_role}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-zinc-400">{u.organizations_list || 'Global Platform'}</td>
+                  <td className="px-4 py-3 text-[#A3A3A3]">{u.organizations_list || 'Global Platform'}</td>
                   <td className="px-4 py-3">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-[#16A34A]/15 text-[#16A34A] border border-[#16A34A]/30">
                       Active
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-zinc-400">{new Date(u.created_at * 1000).toLocaleDateString()}</td>
+                  <td className="px-4 py-3 text-[#A3A3A3] font-mono">{new Date(u.created_at * 1000).toLocaleDateString()}</td>
                 </tr>
               ))}
             </tbody>

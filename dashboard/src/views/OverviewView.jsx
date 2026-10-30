@@ -8,186 +8,365 @@ import {
   Clock, 
   TrendingUp, 
   Activity,
-  ArrowRight
+  ArrowRight,
+  Wifi,
+  WifiOff,
+  Thermometer,
+  Droplets,
+  Wind,
+  ShieldAlert,
+  ShieldCheck,
+  CheckCircle2,
+  RefreshCw,
+  ExternalLink
 } from 'lucide-react';
+import { TrendChart } from '../components/TrendChart.jsx';
+import { ShelfLifeGauge } from '../components/ShelfLifeGauge.jsx';
+import { tempColor, tempBadge, vocColor, vocBadge, shelfLifeColor, fmtTs } from '../utils/helpers.js';
 
-export function OverviewView({ onNavigate }) {
+export function OverviewView({ onNavigate, liveReadings = [] }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastFetchTime, setLastFetchTime] = useState(Date.now());
+
+  const loadOverview = async () => {
+    try {
+      setRefreshing(true);
+      const res = await fetch('/api/overview');
+      if (res.ok) {
+        const json = await res.json();
+        setData(json);
+        setLastFetchTime(Date.now());
+      }
+    } catch (err) {
+      console.error('Failed to load overview data:', err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    fetch('/api/overview')
-      .then(res => res.json())
-      .then(json => {
-        setData(json.stats);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Failed to load overview data:', err);
-        setLoading(false);
-      });
+    loadOverview();
+    const interval = setInterval(loadOverview, 10000); // 10s polling for background stats
+    return () => clearInterval(interval);
   }, []);
 
   if (loading) {
     return (
       <div className="p-8 space-y-6 animate-pulse">
-        <div className="h-8 bg-zinc-800 rounded w-64"></div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[1,2,3,4].map(i => <div key={i} className="h-32 bg-zinc-800/60 rounded-xl"></div>)}
+        <div className="h-8 bg-[#1E1E1E] rounded w-64"></div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[1,2,3,4,5,6].map(i => <div key={i} className="h-28 bg-[#1E1E1E] rounded-xl"></div>)}
         </div>
       </div>
     );
   }
 
+  const stats = data?.stats;
+  const telemetry = data?.telemetry;
+  const serverTime = data?.server_time || Math.floor(Date.now() / 1000);
+
+  // Determine freshness of IoT telemetry
+  const readingAgeS = telemetry?.last_seen_ts ? (serverTime - telemetry.last_seen_ts) : null;
+  const isTelemetryLive = readingAgeS !== null && readingAgeS <= 35;
+  const isTelemetryStale = readingAgeS !== null && readingAgeS > 35 && readingAgeS <= 300;
+  const isTelemetryUnavailable = readingAgeS === null || readingAgeS > 300;
+
+  // Primary sensor metrics
+  const latestR = telemetry?.latest_reading;
+  const profile = telemetry?.profile;
+  const tColor = tempColor(latestR?.temp_c, profile);
+  const vColor = vocColor(latestR?.voc_raw, profile);
+
   const cards = [
     {
       title: 'Active Shipments',
-      value: data?.active_shipments ?? 0,
-      sub: 'In-transit & monitoring',
+      value: stats?.active_shipments ?? 0,
+      sub: 'Dispatched & monitoring in transit',
       icon: Truck,
-      color: 'emerald',
+      color: '#16A34A',
       action: 'shipments'
     },
     {
       title: 'Inventory Batches',
-      value: `${data?.inventory_batches ?? 0} batches`,
-      sub: `${data?.inventory_quantity ?? 0} total units`,
+      value: `${stats?.inventory_batches ?? 0} Lots`,
+      sub: `${Number(stats?.inventory_quantity ?? 0).toLocaleString()} stored units`,
       icon: Boxes,
-      color: 'blue',
+      color: '#64748B',
       action: 'inventory'
     },
     {
-      title: 'Monitored IoT Nodes',
-      value: `${data?.online_devices ?? 0} Online`,
-      sub: `${data?.offline_devices ?? 0} Offline nodes`,
+      title: 'IoT Monitoring Nodes',
+      value: `${stats?.online_devices ?? 0} Online`,
+      sub: stats?.offline_devices > 0 ? `${stats.offline_devices} node(s) offline` : 'All telemetry active',
       icon: Cpu,
-      color: data?.offline_devices > 0 ? 'amber' : 'emerald',
+      color: stats?.offline_devices > 0 ? '#D97706' : '#16A34A',
       action: 'iot'
     },
     {
-      title: 'Critical Excursions',
-      value: data?.critical_alerts ?? 0,
-      sub: 'Active temperature alerts',
+      title: 'Thermal Excursions',
+      value: stats?.critical_alerts ?? 0,
+      sub: 'Active safe-window breaches',
       icon: AlertTriangle,
-      color: data?.critical_alerts > 0 ? 'rose' : 'emerald',
+      color: stats?.critical_alerts > 0 ? '#A31C18' : '#16A34A',
       action: 'alerts'
     },
     {
-      title: 'Near-Expiry Batches',
-      value: data?.near_expiry_batches ?? 0,
-      sub: 'Expiring in next 7 days',
+      title: 'Batches Near Expiry',
+      value: stats?.near_expiry_batches ?? 0,
+      sub: 'Expiring within 7 days',
       icon: Clock,
-      color: data?.near_expiry_batches > 0 ? 'amber' : 'emerald',
+      color: stats?.near_expiry_batches > 0 ? '#D97706' : '#16A34A',
       action: 'inventory'
     },
     {
       title: 'Replacement Planner',
-      value: `${data?.pending_replacements ?? 0} Pending`,
-      sub: 'Shipment recovery requests',
+      value: `${stats?.pending_replacements ?? 0} Pending`,
+      sub: 'Emergency re-allocation tasks',
       icon: Repeat,
-      color: 'sky',
+      color: '#64748B',
       action: 'replacement'
     }
   ];
 
   return (
     <div className="space-y-6">
-      {/* Top Welcome Banner */}
-      <div className="bg-gradient-to-r from-zinc-900 via-zinc-900 to-zinc-800/80 p-6 rounded-2xl border border-zinc-800 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      {/* Overview Header Banner */}
+      <div className="bg-[#1E1E1E] border border-[#333333] p-6 rounded-2xl shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-white tracking-tight">ColdChain IQ Operations Command Center</h2>
-          <p className="text-xs text-zinc-400 mt-1">Multi-tenant pharmaceutical & perishables integrity monitoring with Arrhenius predictive kinetics.</p>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#16A34A]"></span>
+            <h2 className="text-xl font-bold text-[#F5F5F5] tracking-tight">ColdChain IQ Operations Dashboard</h2>
+          </div>
+          <p className="text-xs text-[#A3A3A3]">
+            Integrated multi-tenant cold-chain logistics, batch-level Arrhenius physical degradation tracking, and ESP32 telemetry.
+          </p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span className="text-xs font-semibold text-emerald-400">Sensors Ingesting Live (ESP32)</span>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Telemetry freshness pill */}
+          <div className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border ${
+            isTelemetryLive
+              ? 'bg-[#16A34A]/15 text-[#16A34A] border-[#16A34A]/40'
+              : isTelemetryStale
+              ? 'bg-[#D97706]/15 text-[#D97706] border-[#D97706]/40'
+              : 'bg-[#A31C18]/15 text-[#A31C18] border-[#A31C18]/40'
+          }`}>
+            {isTelemetryLive ? <Wifi size={13} /> : <WifiOff size={13} />}
+            <span>
+              {isTelemetryLive ? 'Sensors Ingesting Live (ESP32)' : isTelemetryStale ? 'Telemetry Stale (>35s)' : 'Sensors Offline'}
+            </span>
+          </div>
+
+          <button
+            onClick={loadOverview}
+            disabled={refreshing}
+            className="p-2 rounded-lg bg-[#242424] hover:bg-[#333333] text-[#A3A3A3] hover:text-[#F5F5F5] border border-[#333333] transition-colors"
+            title="Refresh dashboard stats"
+          >
+            <RefreshCw size={13} className={refreshing ? 'animate-spin' : ''} />
+          </button>
         </div>
       </div>
 
-      {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Primary KPI Metrics Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {cards.map((c, i) => {
           const Icon = c.icon;
           return (
             <div 
               key={i}
               onClick={() => onNavigate(c.action)}
-              className="bg-zinc-900/90 border border-zinc-800 hover:border-zinc-700/80 p-5 rounded-xl shadow-lg transition-all cursor-pointer group flex flex-col justify-between"
+              className="bg-[#1E1E1E] border border-[#333333] hover:border-[#444444] p-5 rounded-xl shadow-sm transition-all cursor-pointer group flex flex-col justify-between"
             >
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">{c.title}</span>
-                <div className="p-2 rounded-lg bg-zinc-800/80 text-zinc-300 group-hover:text-emerald-400 transition-colors">
-                  <Icon size={18} />
+                <span className="text-xs font-semibold text-[#A3A3A3] uppercase tracking-wider">{c.title}</span>
+                <div className="p-2 rounded-lg bg-[#242424] text-[#A3A3A3] group-hover:text-[#F5F5F5] border border-[#333333] transition-colors">
+                  <Icon size={17} />
                 </div>
               </div>
               <div className="my-3">
-                <div className="text-2xl font-extrabold text-white tracking-tight">{c.value}</div>
-                <div className="text-xs text-zinc-400 mt-0.5">{c.sub}</div>
+                <div className="text-2xl font-extrabold text-[#F5F5F5] tracking-tight">{c.value}</div>
+                <div className="text-xs text-[#A3A3A3] mt-0.5">{c.sub}</div>
               </div>
-              <div className="pt-2 border-t border-zinc-800/60 flex items-center justify-between text-[11px] font-semibold text-emerald-400 group-hover:translate-x-0.5 transition-transform">
-                <span>View Details</span>
-                <ArrowRight size={13} />
+              <div className="pt-2 border-t border-[#333333] flex items-center justify-between text-[11px] font-semibold text-[#16A34A] group-hover:translate-x-0.5 transition-transform">
+                <span>Inspect Module</span>
+                <ArrowRight size={12} />
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* Architecture & Live Status Insight */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-zinc-900/90 border border-zinc-800 p-5 rounded-xl">
-          <div className="flex items-center gap-2 mb-3">
-            <Activity size={18} className="text-emerald-400" />
-            <h3 className="text-sm font-semibold text-zinc-200">Kinetics Spoilage Engine Status</h3>
+      {/* ─── DEDICATED IOT MONITORING SECTION ─────────────────────────────────── */}
+      <div className="bg-[#1E1E1E] border border-[#333333] rounded-2xl p-6 shadow-sm space-y-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-[#333333] gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-[#06110C] border border-[#333333] text-[#16A34A]">
+              <Cpu size={22} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-bold text-[#F5F5F5]">Live IoT Sensor Telemetry</h3>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#242424] text-[#16A34A] border border-[#333333]">
+                  Node: {telemetry?.device_id || 'node-01'}
+                </span>
+              </div>
+              <p className="text-xs text-[#A3A3A3]">
+                Calibrated DS18B20 1-Wire thermal probe, DHT22 ambient humidity, and MQ-135 VOC indicative channel.
+              </p>
+            </div>
           </div>
-          <p className="text-xs text-zinc-400 leading-relaxed mb-4">
-            The platform executes active Arrhenius and Q10 reaction kinetics models per sensor timestamp. Temperature breaches accelerate shelf life consumption dynamically (<code className="text-emerald-300">k = A &middot; e^(-Ea/RT)</code>).
-          </p>
-          <div className="p-3 bg-zinc-950/60 rounded-lg border border-zinc-800/80 text-xs space-y-2">
-            <div className="flex justify-between text-zinc-300">
-              <span>Arrhenius Universal Gas Const (R)</span>
-              <span className="font-mono text-emerald-400">8.314 J/(mol&middot;K)</span>
+
+          <button
+            onClick={() => onNavigate('iot')}
+            className="px-3 py-1.5 rounded-lg bg-[#242424] hover:bg-[#333333] text-[#F5F5F5] text-xs font-semibold flex items-center gap-1.5 border border-[#333333] transition-colors"
+          >
+            <span>Full Node Console</span>
+            <ExternalLink size={12} />
+          </button>
+        </div>
+
+        {/* 4 Sensor Metric Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Temperature */}
+          <div className={`bg-[#242424] border ${tColor === 'red' ? 'border-[#A31C18]' : tColor === 'amber' ? 'border-[#D97706]' : 'border-[#333333]'} rounded-xl p-4 flex flex-col justify-between`}>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-[#A3A3A3] uppercase tracking-wider">Storage Temp</span>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase border ${
+                tColor === 'red' ? 'bg-[#A31C18]/15 text-[#A31C18] border-[#A31C18]/40' :
+                tColor === 'amber' ? 'bg-[#D97706]/15 text-[#D97706] border-[#D97706]/40' :
+                'bg-[#16A34A]/15 text-[#16A34A] border-[#16A34A]/40'
+              }`}>
+                {tempBadge(tColor)}
+              </span>
             </div>
-            <div className="flex justify-between text-zinc-300">
-              <span>Sensor Sampling Rate</span>
-              <span className="font-mono text-emerald-400">Every 2000 ms</span>
+            <div className="my-2 flex items-baseline gap-1.5">
+              <span className="text-3xl font-extrabold text-[#F5F5F5] font-mono">
+                {latestR?.temp_c != null ? Number(latestR.temp_c).toFixed(2) : '—'}
+              </span>
+              <span className="text-xs text-[#A3A3A3] font-semibold">&deg;C</span>
             </div>
-            <div className="flex justify-between text-zinc-300">
-              <span>Offline Buffer Recovery</span>
-              <span className="font-mono text-emerald-400">50-slot Flash Ring</span>
+            <div className="text-[11px] text-[#A3A3A3] border-t border-[#333333] pt-2">
+              Safe window: <strong className="text-[#F5F5F5]">{profile ? `${profile.t_min_c}°C – ${profile.t_max_c}°C` : '2°C – 8°C'}</strong>
+            </div>
+          </div>
+
+          {/* Humidity */}
+          <div className="bg-[#242424] border border-[#333333] rounded-xl p-4 flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-[#A3A3A3] uppercase tracking-wider">Humidity (DHT22)</span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase bg-[#64748B]/15 text-[#64748B] border border-[#64748B]/40">
+                Optimal
+              </span>
+            </div>
+            <div className="my-2 flex items-baseline gap-1.5">
+              <span className="text-3xl font-extrabold text-[#F5F5F5] font-mono">
+                {latestR?.humidity != null ? Number(latestR.humidity).toFixed(1) : '—'}
+              </span>
+              <span className="text-xs text-[#A3A3A3] font-semibold">% RH</span>
+            </div>
+            <div className="text-[11px] text-[#A3A3A3] border-t border-[#333333] pt-2">
+              Ambient condensation baseline
+            </div>
+          </div>
+
+          {/* VOC Spoilage */}
+          <div className={`bg-[#242424] border ${vColor === 'red' ? 'border-[#A31C18]' : vColor === 'amber' ? 'border-[#D97706]' : 'border-[#333333]'} rounded-xl p-4 flex flex-col justify-between`}>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-[#A3A3A3] uppercase tracking-wider">VOC Gas (MQ-135)</span>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase border ${
+                vColor === 'red' ? 'bg-[#A31C18]/15 text-[#A31C18] border-[#A31C18]/40' :
+                vColor === 'amber' ? 'bg-[#D97706]/15 text-[#D97706] border-[#D97706]/40' :
+                'bg-[#16A34A]/15 text-[#16A34A] border-[#16A34A]/40'
+              }`}>
+                {vocBadge(vColor)}
+              </span>
+            </div>
+            <div className="my-2 flex items-baseline gap-1.5">
+              <span className="text-3xl font-extrabold text-[#F5F5F5] font-mono">
+                {latestR?.voc_raw != null ? latestR.voc_raw : '—'}
+              </span>
+              <span className="text-xs text-[#A3A3A3] font-semibold">ADC (12-bit)</span>
+            </div>
+            <div className="text-[11px] text-[#A3A3A3] border-t border-[#333333] pt-2">
+              Indicative microbial gas threshold
+            </div>
+          </div>
+
+          {/* Kinetic Decay Rate */}
+          <div className="bg-[#242424] border border-[#333333] rounded-xl p-4 flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-[#A3A3A3] uppercase tracking-wider">Reaction Kinetics</span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase bg-[#16A34A]/15 text-[#16A34A] border border-[#16A34A]/40">
+                Arrhenius
+              </span>
+            </div>
+            <div className="my-2 flex items-baseline gap-1.5">
+              <span className="text-3xl font-extrabold text-[#F5F5F5] font-mono">
+                {telemetry?.rate_factor != null ? `${Number(telemetry.rate_factor).toFixed(2)}×` : '1.00×'}
+              </span>
+              <span className="text-xs text-[#A3A3A3] font-semibold">Rate Factor</span>
+            </div>
+            <div className="text-[11px] text-[#A3A3A3] border-t border-[#333333] pt-2">
+              {telemetry?.rate_factor > 1.05 
+                ? `Ageing ${(telemetry.rate_factor).toFixed(1)}× faster than reference`
+                : 'Storage at ideal baseline rate'}
             </div>
           </div>
         </div>
 
-        <div className="bg-zinc-900/90 border border-zinc-800 p-5 rounded-xl flex flex-col justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <TrendingUp size={18} className="text-sky-400" />
-              <h3 className="text-sm font-semibold text-zinc-200">Quick Actions</h3>
+        {/* Real-time Trend Chart embedded in Overview */}
+        <div className="border border-[#333333] rounded-xl p-4 bg-[#171717]">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h4 className="text-xs font-bold text-[#F5F5F5] uppercase tracking-wider">Thermal Stability Curve</h4>
+              <p className="text-[11px] text-[#A3A3A3]">Dynamic sensor stream with safe-range envelope</p>
             </div>
-            <p className="text-xs text-zinc-400 mb-4">
-              Access shipment creation, dispatch operations, or create an emergency replacement allocation.
-            </p>
+            <span className="text-[11px] text-[#A3A3A3] font-mono">
+              Last packet: {latestR?.ts ? fmtTs(latestR.ts) : 'Awaiting sensor'}
+            </span>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              onClick={() => onNavigate('shipments')}
-              className="px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center justify-center gap-2 transition-colors"
-            >
-              <Truck size={14} />
-              <span>Create Shipment</span>
-            </button>
-            <button
-              onClick={() => onNavigate('replacement')}
-              className="px-4 py-2.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-semibold text-xs flex items-center justify-center gap-2 transition-colors border border-zinc-700/60"
-            >
-              <Repeat size={14} />
-              <span>Replacement Request</span>
-            </button>
-          </div>
+
+          <TrendChart 
+            readings={liveReadings} 
+            profile={profile || { t_min_c: 2, t_max_c: 8 }} 
+          />
+        </div>
+      </div>
+
+      {/* Quick Action Dock */}
+      <div className="bg-[#1E1E1E] border border-[#333333] p-5 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <h4 className="text-sm font-bold text-[#F5F5F5]">Operations Command Workflow</h4>
+          <p className="text-xs text-[#A3A3A3] mt-0.5">Quickly dispatch inventory lots or trigger emergency replacement allocation.</p>
+        </div>
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <button
+            onClick={() => onNavigate('inventory')}
+            className="flex-1 sm:flex-initial px-4 py-2.5 rounded-lg bg-[#16A34A] hover:bg-[#15803d] text-white font-semibold text-xs flex items-center justify-center gap-2 transition-colors shadow-sm"
+          >
+            <Boxes size={14} />
+            <span>Receive Batch</span>
+          </button>
+          <button
+            onClick={() => onNavigate('shipments')}
+            className="flex-1 sm:flex-initial px-4 py-2.5 rounded-lg bg-[#242424] hover:bg-[#333333] text-[#F5F5F5] font-semibold text-xs flex items-center justify-center gap-2 border border-[#333333] transition-colors"
+          >
+            <Truck size={14} />
+            <span>Dispatch Cargo</span>
+          </button>
+          <button
+            onClick={() => onNavigate('replacement')}
+            className="flex-1 sm:flex-initial px-4 py-2.5 rounded-lg bg-[#242424] hover:bg-[#333333] text-[#F5F5F5] font-semibold text-xs flex items-center justify-center gap-2 border border-[#333333] transition-colors"
+          >
+            <Repeat size={14} />
+            <span>Replacement Request</span>
+          </button>
         </div>
       </div>
     </div>
   );
 }
-

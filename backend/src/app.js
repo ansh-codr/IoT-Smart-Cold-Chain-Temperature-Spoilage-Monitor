@@ -11,22 +11,22 @@ import { healthRouter } from './routes/health.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 // Existing IoT core routes
-import { readingsRouter }  from './routes/readings.js';
-import { statusRouter }    from './routes/status.js';
-import { alertsRouter }    from './routes/alerts.js';
-import { profilesRouter }  from './routes/profiles.js';
-import { devicesRouter }   from './routes/devices.js';
-import { streamRouter }    from './routes/stream.js';
-import { reportRouter }    from './routes/report.js';
-import { simRouter }       from './routes/sim.js';
+import { readingsRouter } from './routes/readings.js';
+import { statusRouter } from './routes/status.js';
+import { alertsRouter } from './routes/alerts.js';
+import { profilesRouter } from './routes/profiles.js';
+import { devicesRouter } from './routes/devices.js';
+import { streamRouter } from './routes/stream.js';
+import { reportRouter } from './routes/report.js';
+import { simRouter } from './routes/sim.js';
 
 // ColdChain IQ extended management routes
-import { authRouter }        from './routes/auth.js';
-import { overviewRouter }    from './routes/overview.js';
-import { inventoryRouter }   from './routes/inventory.js';
-import { shipmentsRouter }   from './routes/shipments.js';
+import { authRouter } from './routes/auth.js';
+import { overviewRouter } from './routes/overview.js';
+import { inventoryRouter } from './routes/inventory.js';
+import { shipmentsRouter } from './routes/shipments.js';
 import { replacementRouter } from './routes/replacement.js';
-import { adminRouter }       from './routes/admin.js';
+import { adminRouter } from './routes/admin.js';
 
 const app = express();
 

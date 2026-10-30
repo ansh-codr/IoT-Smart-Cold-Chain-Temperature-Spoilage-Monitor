@@ -17,14 +17,14 @@ export function ShelfLifeGauge({ percent = 0, remainingHours = null, rateFactor 
   const dashOffset = circumference - (pct / 100) * circumference
 
   const color =
-    pct >= 25 ? '#10b981' :   // emerald-500
-    pct >= 10 ? '#f59e0b' :   // amber-500
-                '#ef4444'      // rose-500
+    pct >= 25 ? '#16A34A' :   // brand green
+    pct >= 10 ? '#D97706' :   // brand amber
+                '#A31C18'     // brand red
 
   const textColor =
-    pct >= 25 ? 'text-emerald-400' :
-    pct >= 10 ? 'text-amber-400'   :
-                'text-rose-400'
+    pct >= 25 ? 'text-[#16A34A]' :
+    pct >= 10 ? 'text-[#D97706]'   :
+                'text-[#A31C18]'
 
   const rateLabel = rateFactor
     ? rateFactor >= 1.05 || rateFactor <= 0.95
@@ -33,8 +33,8 @@ export function ShelfLifeGauge({ percent = 0, remainingHours = null, rateFactor 
     : null
 
   return (
-    <div className="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-5 shadow-lg flex flex-col items-center gap-2">
-      <span className="text-xs font-semibold text-zinc-400 uppercase tracking-widest self-start">
+    <div className="bg-[#1E1E1E] border border-[#333333] rounded-xl p-5 shadow-sm flex flex-col items-center gap-2">
+      <span className="text-xs font-semibold text-[#A3A3A3] uppercase tracking-widest self-start">
         Remaining Shelf Life
       </span>
 
@@ -45,7 +45,7 @@ export function ShelfLifeGauge({ percent = 0, remainingHours = null, rateFactor 
           <path
             d={`M ${CX - R} ${CY} A ${R} ${R} 0 0 1 ${CX + R} ${CY}`}
             fill="none"
-            stroke="#3f3f46"
+            stroke="#333333"
             strokeWidth={STROKE}
             strokeLinecap="round"
           />
@@ -64,7 +64,7 @@ export function ShelfLifeGauge({ percent = 0, remainingHours = null, rateFactor 
 
         {/* Center text */}
         <div className="absolute inset-0 flex flex-col items-center justify-end pb-1">
-          <span className={`text-2xl font-extrabold tabular-nums ${textColor}`}>
+          <span className={`text-2xl font-extrabold font-mono tabular-nums ${textColor}`}>
             {pct.toFixed(1)}%
           </span>
         </div>
@@ -72,20 +72,20 @@ export function ShelfLifeGauge({ percent = 0, remainingHours = null, rateFactor 
 
       {/* Hours remaining */}
       {remainingHours !== null && (
-        <p className="text-zinc-300 font-semibold text-sm">
+        <p className="text-[#F5F5F5] font-semibold text-sm">
           {remainingHours.toFixed(1)} hrs remaining
         </p>
       )}
 
       {/* Rate factor explanation */}
       {rateLabel && (
-        <p className="text-[11px] text-zinc-500 text-center border-t border-zinc-700/60 pt-2 w-full">
+        <p className="text-[11px] text-[#A3A3A3] text-center border-t border-[#333333] pt-2 w-full">
           {rateLabel}
         </p>
       )}
 
       {!remainingHours && !rateFactor && (
-        <p className="text-xs text-zinc-500">No profile assigned</p>
+        <p className="text-xs text-[#A3A3A3]">No profile assigned</p>
       )}
     </div>
   )

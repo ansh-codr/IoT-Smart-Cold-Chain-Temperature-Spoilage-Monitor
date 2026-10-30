@@ -67,6 +67,73 @@ overviewRouter.get('/overview', requireAuth, async (req, res, next) => {
       [orgId]
     );
 
+    // 7. IoT Telemetry overview for the active organization's primary node
+    // Get primary device (or first available)
+    const primaryDevice = devRows[0] || null;
+    let telemetrySnapshot = null;
+
+    if (primaryDevice) {
+      const [latestReadings] = await pool.execute(
+        `SELECT seq, ts, temp_c, humidity, voc_raw, buffered
+           FROM readings
+          WHERE device_id = ?
+          ORDER BY ts DESC, seq DESC
+          LIMIT 1`,
+        [primaryDevice.device_id]
+      );
+
+      const latestReading = latestReadings[0] ? {
+        seq: latestReadings[0].seq,
+        ts: Number(latestReadings[0].ts),
+        temp_c: Number(latestReadings[0].temp_c),
+        humidity: Number(latestReadings[0].humidity),
+        voc_raw: Number(latestReadings[0].voc_raw),
+        buffered: Boolean(latestReadings[0].buffered === 1 || latestReadings[0].buffered === true)
+      } : null;
+
+      // Check primary open alert
+      const [openAlerts] = await pool.execute(
+        `SELECT id, type, severity, started_at, peak_value, message
+           FROM alerts
+          WHERE device_id = ? AND ended_at IS NULL
+          ORDER BY started_at DESC
+          LIMIT 1`,
+        [primaryDevice.device_id]
+      );
+
+      // Check device profile
+      const [profRows] = await pool.execute(
+        `SELECT p.id, p.name, p.t_min_c, p.t_max_c, p.t_ref_c, p.shelf_life_hours_at_ref, p.q10, p.ea_kj_per_mol, p.voc_baseline, p.voc_spoil_delta
+           FROM devices d
+           JOIN product_profiles p ON p.id = d.profile_id
+          WHERE d.device_id = ?`,
+        [primaryDevice.device_id]
+      );
+
+      telemetrySnapshot = {
+        device_id: primaryDevice.device_id,
+        device_name: primaryDevice.name,
+        online: primaryDevice.last_ts ? ((now - primaryDevice.last_ts) <= 30) : false,
+        last_seen_ts: primaryDevice.last_ts || null,
+        latest_reading: latestReading,
+        active_alert: openAlerts[0] ? {
+          ...openAlerts[0],
+          peak_value: openAlerts[0].peak_value != null ? Number(openAlerts[0].peak_value) : null
+        } : null,
+        profile: profRows[0] ? {
+          ...profRows[0],
+          t_min_c: Number(profRows[0].t_min_c),
+          t_max_c: Number(profRows[0].t_max_c),
+          t_ref_c: Number(profRows[0].t_ref_c),
+          shelf_life_hours_at_ref: Number(profRows[0].shelf_life_hours_at_ref),
+          q10: Number(profRows[0].q10),
+          ea_kj_per_mol: Number(profRows[0].ea_kj_per_mol)
+        } : null,
+        rate_factor: primaryDevice.last_rate_factor != null ? Number(primaryDevice.last_rate_factor) : 1.0,
+        consumed_life_hours: primaryDevice.consumed_life_hours != null ? Number(primaryDevice.consumed_life_hours) : 0
+      };
+    }
+
     res.json({
       stats: {
         active_shipments: Number(shipRows[0].total_active),
@@ -77,7 +144,9 @@ overviewRouter.get('/overview', requireAuth, async (req, res, next) => {
         critical_alerts: Number(alertRows[0].active_critical),
         near_expiry_batches: Number(expiryRows[0].near_expiry_count),
         pending_replacements: Number(repRows[0].pending_replacements)
-      }
+      },
+      telemetry: telemetrySnapshot,
+      server_time: now
     });
   } catch (err) {
     next(err);

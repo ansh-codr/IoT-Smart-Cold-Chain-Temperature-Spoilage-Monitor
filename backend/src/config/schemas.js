@@ -13,30 +13,46 @@ import { z } from 'zod';
 
 // ─── Sensor range constants (mirror of API_CONTRACT.md) ──────────────────────
 export const SENSOR_RANGES = {
-  TEMP_C_MIN:     -40,
-  TEMP_C_MAX:      85,
-  HUMIDITY_MIN:     0,
-  HUMIDITY_MAX:   100,
-  VOC_RAW_MIN:      0,
-  VOC_RAW_MAX:   4095,
-  BATCH_MAX_SIZE:  200,
+  TEMP_C_MIN:        -40,
+  TEMP_C_MAX:         85,
+  DS18B20_TEMP_MIN:  -55,
+  DS18B20_TEMP_MAX:  125,
+  DHT22_TEMP_MIN:    -40,
+  DHT22_TEMP_MAX:     80,
+  HUMIDITY_MIN:        0,
+  HUMIDITY_MAX:      100,
+  VOC_RAW_MIN:         0,
+  VOC_RAW_MAX:      4095,
+  BATCH_MAX_SIZE:    200,
 };
 
 // ─── Single reading schema ────────────────────────────────────────────────────
 export const SingleReadingSchema = z.object({
-  device_id: z.string().min(1).max(64),
-  ts:        z.number().int().positive(),
-  temp_c:    z.number()
-               .min(SENSOR_RANGES.TEMP_C_MIN, { message: `temp_c must be ≥ ${SENSOR_RANGES.TEMP_C_MIN}` })
-               .max(SENSOR_RANGES.TEMP_C_MAX, { message: `temp_c must be ≤ ${SENSOR_RANGES.TEMP_C_MAX}` }),
-  humidity:  z.number()
-               .min(SENSOR_RANGES.HUMIDITY_MIN)
-               .max(SENSOR_RANGES.HUMIDITY_MAX),
-  voc_raw:   z.number().int()
-               .min(SENSOR_RANGES.VOC_RAW_MIN)
-               .max(SENSOR_RANGES.VOC_RAW_MAX),
-  seq:       z.number().int().min(0),
-  buffered:  z.boolean(),
+  device_id:      z.string().min(1).max(64),
+  ts:             z.number().int().positive(),
+  temp_c:         z.number().finite()
+                    .min(SENSOR_RANGES.TEMP_C_MIN, { message: `temp_c must be ≥ ${SENSOR_RANGES.TEMP_C_MIN}` })
+                    .max(SENSOR_RANGES.TEMP_C_MAX, { message: `temp_c must be ≤ ${SENSOR_RANGES.TEMP_C_MAX}` }),
+  ds18b20_temp_c: z.number().finite()
+                    .min(SENSOR_RANGES.DS18B20_TEMP_MIN, { message: `ds18b20_temp_c must be ≥ ${SENSOR_RANGES.DS18B20_TEMP_MIN}` })
+                    .max(SENSOR_RANGES.DS18B20_TEMP_MAX, { message: `ds18b20_temp_c must be ≤ ${SENSOR_RANGES.DS18B20_TEMP_MAX}` })
+                    .nullable()
+                    .optional(),
+  dht22_temp_c:   z.number().finite()
+                    .min(SENSOR_RANGES.DHT22_TEMP_MIN, { message: `dht22_temp_c must be ≥ ${SENSOR_RANGES.DHT22_TEMP_MIN}` })
+                    .max(SENSOR_RANGES.DHT22_TEMP_MAX, { message: `dht22_temp_c must be ≤ ${SENSOR_RANGES.DHT22_TEMP_MAX}` })
+                    .nullable()
+                    .optional(),
+  humidity:       z.number().finite()
+                    .min(SENSOR_RANGES.HUMIDITY_MIN, { message: `humidity must be ≥ ${SENSOR_RANGES.HUMIDITY_MIN}` })
+                    .max(SENSOR_RANGES.HUMIDITY_MAX, { message: `humidity must be ≤ ${SENSOR_RANGES.HUMIDITY_MAX}` })
+                    .nullable()
+                    .optional(),
+  voc_raw:        z.number().int()
+                    .min(SENSOR_RANGES.VOC_RAW_MIN)
+                    .max(SENSOR_RANGES.VOC_RAW_MAX),
+  seq:            z.number().int().min(0),
+  buffered:       z.boolean(),
 });
 
 // ─── Batch reading schema — array of singles, capped at 200 entries ──────────

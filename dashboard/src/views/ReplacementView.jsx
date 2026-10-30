@@ -101,12 +101,12 @@ export function ReplacementView() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-white tracking-tight">Replacement Planning &amp; Allocation</h2>
-          <p className="text-xs text-zinc-400 mt-1">Automated triage and transactional inventory re-allocation for spoiled or breached shipments.</p>
+          <h2 className="text-xl font-bold text-[#F5F5F5] tracking-tight">Replacement Planning &amp; Allocation</h2>
+          <p className="text-xs text-[#A3A3A3] mt-1">Automated triage and transactional inventory re-allocation for spoiled or breached shipments.</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-2 transition-colors shadow-sm"
+          className="px-4 py-2.5 rounded-lg bg-[#16A34A] hover:bg-[#15803d] text-white font-semibold text-xs flex items-center gap-2 transition-colors shadow-sm"
         >
           <Plus size={15} />
           <span>New Replacement Request</span>
@@ -116,28 +116,28 @@ export function ReplacementView() {
       {/* Requests List */}
       <div className="space-y-4">
         {requests.map(r => (
-          <div key={r.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-sm space-y-4">
+          <div key={r.id} className="bg-[#1E1E1E] border border-[#333333] rounded-xl p-5 shadow-sm space-y-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-lg bg-zinc-800 text-sky-400 border border-zinc-700/60">
+                <div className="p-2.5 rounded-lg bg-[#242424] text-[#64748B] border border-[#333333]">
                   <Repeat size={20} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-sm text-white">{r.request_code}</span>
+                    <span className="font-mono font-bold text-sm text-[#F5F5F5]">{r.request_code}</span>
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
                       r.status === 'allocated' 
-                        ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30' 
-                        : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                        ? 'bg-[#16A34A]/15 text-[#16A34A] border-[#16A34A]/30' 
+                        : 'bg-[#D97706]/15 text-[#D97706] border-[#D97706]/30'
                     }`}>
                       {r.status.replace('_', ' ')}
                     </span>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-500/15 text-rose-300 border border-rose-500/30">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#A31C18]/15 text-[#A31C18] border border-[#A31C18]/30">
                       {r.priority}
                     </span>
                   </div>
-                  <p className="text-xs text-zinc-400 mt-0.5">
-                    Product: <strong className="text-zinc-200 capitalize">{r.product_name}</strong> &bull; Destination: <strong className="text-zinc-200">{r.destination}</strong>
+                  <p className="text-xs text-[#A3A3A3] mt-0.5">
+                    Product: <strong className="text-[#F5F5F5] capitalize">{r.product_name}</strong> &bull; Destination: <strong className="text-[#F5F5F5]">{r.destination}</strong>
                   </p>
                 </div>
               </div>
@@ -148,29 +148,29 @@ export function ReplacementView() {
                     setShowAllocateModal(r);
                     setAllocateData({ warehouse_id: '1', inventory_id: inventory[0]?.id || '', quantity: r.required_quantity });
                   }}
-                  className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold"
+                  className="px-3 py-1.5 rounded-lg bg-[#16A34A] hover:bg-[#15803d] text-white text-xs font-semibold transition-colors"
                 >
                   Allocate Stock
                 </button>
               )}
             </div>
 
-            <div className="p-3 bg-zinc-950/60 rounded-lg border border-zinc-800/80 text-xs">
-              <p className="text-zinc-400"><strong className="text-zinc-300">Reason:</strong> {r.reason}</p>
-              <div className="mt-2 pt-2 border-t border-zinc-800/60 flex justify-between text-zinc-400">
-                <span>Requested Quantity: <strong className="text-white">{r.required_quantity} {r.unit}</strong></span>
-                <span>Required By: <strong className="text-white">{new Date(r.required_by_ts * 1000).toLocaleString()}</strong></span>
+            <div className="p-3 bg-[#242424] rounded-lg border border-[#333333] text-xs">
+              <p className="text-[#A3A3A3]"><strong className="text-[#F5F5F5]">Reason:</strong> {r.reason}</p>
+              <div className="mt-2 pt-2 border-t border-[#333333] flex justify-between text-[#A3A3A3]">
+                <span>Requested Quantity: <strong className="text-[#F5F5F5]">{r.required_quantity} {r.unit}</strong></span>
+                <span>Required By: <strong className="text-[#F5F5F5]">{new Date(r.required_by_ts * 1000).toLocaleString()}</strong></span>
               </div>
             </div>
 
             {/* Allocations list if allocated */}
             {r.allocations?.length > 0 && (
-              <div className="p-3 bg-emerald-950/20 border border-emerald-800/30 rounded-lg text-xs space-y-1">
-                <p className="font-semibold text-emerald-400 text-[11px] uppercase tracking-wider">Allocated Warehouse Stock</p>
+              <div className="p-3 bg-[#16A34A]/10 border border-[#16A34A]/30 rounded-lg text-xs space-y-1">
+                <p className="font-semibold text-[#16A34A] text-[11px] uppercase tracking-wider">Allocated Warehouse Stock</p>
                 {r.allocations.map((a, i) => (
-                  <div key={i} className="flex justify-between text-zinc-300">
+                  <div key={i} className="flex justify-between text-[#F5F5F5]">
                     <span>{a.warehouse_name} (Batch: {a.batch_number})</span>
-                    <span className="font-semibold text-emerald-400">{a.allocated_quantity} units</span>
+                    <span className="font-semibold text-[#16A34A] font-mono">{a.allocated_quantity} units</span>
                   </div>
                 ))}
               </div>
@@ -181,27 +181,27 @@ export function ReplacementView() {
 
       {/* Allocate Modal */}
       {showAllocateModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
-            <h3 className="text-base font-bold text-white mb-2">Fulfill Replacement {showAllocateModal.request_code}</h3>
-            <p className="text-xs text-zinc-400 mb-4">Select warehouse batch to reserve and dispatch replacement cargo.</p>
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#1E1E1E] border border-[#333333] rounded-2xl w-full max-w-md p-6 shadow-2xl">
+            <h3 className="text-base font-bold text-[#F5F5F5] mb-2">Fulfill Replacement {showAllocateModal.request_code}</h3>
+            <p className="text-xs text-[#A3A3A3] mb-4">Select warehouse batch to reserve and dispatch replacement cargo.</p>
             <form onSubmit={handleAllocateSubmit} className="space-y-4 text-xs">
               <div>
-                <label className="block text-zinc-400 font-semibold mb-1">Source Warehouse</label>
+                <label className="block text-[#A3A3A3] font-semibold mb-1">Source Warehouse</label>
                 <select
                   value={allocateData.warehouse_id}
                   onChange={e => setAllocateData({ ...allocateData, warehouse_id: e.target.value })}
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2.5 text-white"
+                  className="w-full bg-[#242424] border border-[#333333] rounded-lg p-2.5 text-[#F5F5F5] focus:outline-none focus:border-[#16A34A]"
                 >
                   {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-zinc-400 font-semibold mb-1">Available Batch Lot</label>
+                <label className="block text-[#A3A3A3] font-semibold mb-1">Available Batch Lot</label>
                 <select
                   value={allocateData.inventory_id}
                   onChange={e => setAllocateData({ ...allocateData, inventory_id: e.target.value })}
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2.5 text-white"
+                  className="w-full bg-[#242424] border border-[#333333] rounded-lg p-2.5 text-[#F5F5F5] focus:outline-none focus:border-[#16A34A]"
                 >
                   {inventory
                     .filter(item => String(item.warehouse_id) === String(allocateData.warehouse_id))
@@ -213,27 +213,27 @@ export function ReplacementView() {
                 </select>
               </div>
               <div>
-                <label className="block text-zinc-400 font-semibold mb-1">Quantity to Allocate</label>
+                <label className="block text-[#A3A3A3] font-semibold mb-1">Quantity to Allocate</label>
                 <input
                   type="number"
                   required
                   min="1"
                   value={allocateData.quantity}
                   onChange={e => setAllocateData({ ...allocateData, quantity: e.target.value })}
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2.5 text-white"
+                  className="w-full bg-[#242424] border border-[#333333] rounded-lg p-2.5 text-[#F5F5F5] font-mono focus:outline-none focus:border-[#16A34A]"
                 />
               </div>
-              <div className="flex justify-end gap-2 pt-3 border-t border-zinc-800">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#333333]">
                 <button
                   type="button"
                   onClick={() => setShowAllocateModal(null)}
-                  className="px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-semibold"
+                  className="px-4 py-2 rounded-lg bg-[#242424] hover:bg-[#333333] text-[#A3A3A3] font-semibold transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold"
+                  className="px-4 py-2 rounded-lg bg-[#16A34A] hover:bg-[#15803d] text-white font-semibold transition-colors"
                 >
                   Confirm Allocation
                 </button>
@@ -245,16 +245,16 @@ export function ReplacementView() {
 
       {/* Create Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
-            <h3 className="text-base font-bold text-white mb-4">Initiate Replacement Request</h3>
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#1E1E1E] border border-[#333333] rounded-2xl w-full max-w-md p-6 shadow-2xl">
+            <h3 className="text-base font-bold text-[#F5F5F5] mb-4">Initiate Replacement Request</h3>
             <form onSubmit={handleCreateSubmit} className="space-y-4 text-xs">
               <div>
-                <label className="block text-zinc-400 font-semibold mb-1">Product Profile</label>
+                <label className="block text-[#A3A3A3] font-semibold mb-1">Product Profile</label>
                 <select
                   value={formData.profile_id}
                   onChange={e => setFormData({ ...formData, profile_id: e.target.value })}
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2.5 text-white"
+                  className="w-full bg-[#242424] border border-[#333333] rounded-lg p-2.5 text-[#F5F5F5] focus:outline-none focus:border-[#16A34A]"
                 >
                   <option value="1">Dairy (2°C – 6°C)</option>
                   <option value="2">Pharma (2°C – 8°C)</option>
@@ -263,57 +263,57 @@ export function ReplacementView() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-400 font-semibold mb-1">Required Quantity</label>
+                  <label className="block text-[#A3A3A3] font-semibold mb-1">Required Quantity</label>
                   <input
                     type="number"
                     required
                     min="1"
                     value={formData.required_quantity}
                     onChange={e => setFormData({ ...formData, required_quantity: e.target.value })}
-                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2.5 text-white"
+                    className="w-full bg-[#242424] border border-[#333333] rounded-lg p-2.5 text-[#F5F5F5] font-mono focus:outline-none focus:border-[#16A34A]"
                   />
                 </div>
                 <div>
-                  <label className="block text-zinc-400 font-semibold mb-1">Unit</label>
+                  <label className="block text-[#A3A3A3] font-semibold mb-1">Unit</label>
                   <input
                     type="text"
                     value={formData.unit}
                     onChange={e => setFormData({ ...formData, unit: e.target.value })}
-                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2.5 text-white"
+                    className="w-full bg-[#242424] border border-[#333333] rounded-lg p-2.5 text-[#F5F5F5] focus:outline-none focus:border-[#16A34A]"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-zinc-400 font-semibold mb-1">Destination Facility</label>
+                <label className="block text-[#A3A3A3] font-semibold mb-1">Destination Facility</label>
                 <input
                   type="text"
                   required
                   value={formData.destination}
                   onChange={e => setFormData({ ...formData, destination: e.target.value })}
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2.5 text-white"
+                  className="w-full bg-[#242424] border border-[#333333] rounded-lg p-2.5 text-[#F5F5F5] focus:outline-none focus:border-[#16A34A]"
                 />
               </div>
               <div>
-                <label className="block text-zinc-400 font-semibold mb-1">Reason / Incident Report</label>
+                <label className="block text-[#A3A3A3] font-semibold mb-1">Reason / Incident Report</label>
                 <textarea
                   required
                   rows={2}
                   value={formData.reason}
                   onChange={e => setFormData({ ...formData, reason: e.target.value })}
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2.5 text-white"
+                  className="w-full bg-[#242424] border border-[#333333] rounded-lg p-2.5 text-[#F5F5F5] focus:outline-none focus:border-[#16A34A]"
                 />
               </div>
-              <div className="flex justify-end gap-2 pt-3 border-t border-zinc-800">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#333333]">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-semibold"
+                  className="px-4 py-2 rounded-lg bg-[#242424] hover:bg-[#333333] text-[#A3A3A3] font-semibold transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold"
+                  className="px-4 py-2 rounded-lg bg-[#16A34A] hover:bg-[#15803d] text-white font-semibold transition-colors"
                 >
                   Submit Request
                 </button>

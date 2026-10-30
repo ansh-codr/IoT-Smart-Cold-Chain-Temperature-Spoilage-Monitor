@@ -81,10 +81,14 @@ CREATE TABLE IF NOT EXISTS readings (
   seq         INT UNSIGNED    NOT NULL,
   -- Sensor timestamp (firmware clock), Unix seconds UTC
   ts          INT UNSIGNED    NOT NULL,
-  -- DS18B20 temperature reading, °C
-  temp_c      DECIMAL(6,2)    NOT NULL,
-  -- DHT22 relative humidity, %RH
-  humidity    DECIMAL(5,2)    NOT NULL,
+  -- Primary temperature reading, °C (DS18B20 primary with DHT22 fallback)
+  temp_c          DECIMAL(6,2)    NOT NULL,
+  -- Independent DS18B20 temperature reading, °C (NULL if sensor offline)
+  ds18b20_temp_c  DECIMAL(6,2)    NULL,
+  -- Independent DHT22 temperature reading, °C (NULL if sensor offline)
+  dht22_temp_c    DECIMAL(6,2)    NULL,
+  -- DHT22 relative humidity, %RH (NULL if sensor offline)
+  humidity        DECIMAL(5,2)    NULL,
   -- MQ-135 raw ADC value (12-bit, 0–4095), indicative only
   voc_raw     SMALLINT UNSIGNED NOT NULL,
   -- true = this reading was buffered offline and sent late

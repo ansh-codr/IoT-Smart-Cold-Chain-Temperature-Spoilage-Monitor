@@ -13,7 +13,7 @@
  */
 
 import 'dotenv/config';
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import mysql from 'mysql2/promise';
@@ -25,6 +25,7 @@ const __dirname  = path.dirname(__filename);
 // 3 levels up (../../..) reaches:      cold-chain-monitor/
 // then docs/DB_SCHEMA.sql
 const SCHEMA_PATH = path.resolve(__dirname, '../../..', 'docs', 'DB_SCHEMA.sql');
+const MIGRATIONS_DIR = path.resolve(__dirname, 'migrations');
 
 async function migrate() {
   // Use a single dedicated connection for migration — not the pool — so we
@@ -41,24 +42,47 @@ async function migrate() {
   });
 
   try {
-    console.log('[migrate] Reading schema from', SCHEMA_PATH);
+    console.log('[migrate] Reading base schema from', SCHEMA_PATH);
     const sql = await readFile(SCHEMA_PATH, 'utf8');
 
-    console.log('[migrate] Executing schema (multipleStatements mode)...');
+    console.log('[migrate] Executing base schema (multipleStatements mode)...');
     await conn.query(sql);
+
+    // Discover and execute migration files in order
+    console.log('[migrate] Discovering migrations in', MIGRATIONS_DIR);
+    let migrationFiles = [];
+    try {
+      const files = await readdir(MIGRATIONS_DIR);
+      migrationFiles = files.filter(f => f.endsWith('.sql')).sort();
+    } catch {
+      console.log('[migrate] No migrations directory found.');
+    }
+
+    for (const file of migrationFiles) {
+      const filePath = path.join(MIGRATIONS_DIR, file);
+      console.log(`[migrate] Executing migration: ${file}`);
+      const migrationSql = await readFile(filePath, 'utf8');
+      await conn.query(migrationSql);
+      console.log(`[migrate] ✅ Finished migration: ${file}`);
+    }
 
     // Verify the tables were created
     await conn.query('USE coldchain');
     const [rows] = await conn.query('SHOW TABLES');
     const tables = rows.map(r => Object.values(r)[0]);
-    console.log('[migrate] Tables created:', tables.join(', '));
+    console.log('[migrate] Tables in coldchain:', tables.join(', '));
+
+    // Verify columns on readings table
+    const [columns] = await conn.query('SHOW COLUMNS FROM coldchain.readings');
+    const colNames = columns.map(c => c.Field);
+    console.log('[migrate] Readings columns:', colNames.join(', '));
 
     // Verify seed data
     const [profiles] = await conn.query('SELECT name FROM coldchain.product_profiles');
     const names = profiles.map(r => r.name);
     console.log('[migrate] Seed profiles:', names.join(', '));
 
-    console.log('[migrate] ✅ Migration complete. All tables and seed data are ready.');
+    console.log('[migrate] ✅ Migration complete. All tables, migrations, and seed data are ready.');
   } catch (err) {
     console.error('[migrate] ❌ Migration failed:', err.message);
     throw err;

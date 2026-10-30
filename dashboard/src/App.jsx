@@ -6,12 +6,12 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  Wifi, 
-  WifiOff, 
-  Loader2, 
-  RefreshCw, 
-  Package, 
+import {
+  Wifi,
+  WifiOff,
+  Loader2,
+  RefreshCw,
+  Package,
   Menu,
   Download
 } from 'lucide-react';
@@ -26,11 +26,11 @@ import { AdminView } from './views/AdminView.jsx';
 import { ProfilesView } from './views/ProfilesView.jsx';
 
 import { useDeviceStream } from './hooks/useDeviceStream.js';
-import { MetricCard }     from './components/MetricCard.jsx';
+import { MetricCard } from './components/MetricCard.jsx';
 import { ShelfLifeGauge } from './components/ShelfLifeGauge.jsx';
-import { TrendChart }     from './components/TrendChart.jsx';
-import { AlertBanner }    from './components/AlertBanner.jsx';
-import { AlertTable }     from './components/AlertTable.jsx';
+import { TrendChart } from './components/TrendChart.jsx';
+import { AlertBanner } from './components/AlertBanner.jsx';
+import { AlertTable } from './components/AlertTable.jsx';
 
 import {
   tempColor, tempBadge,
@@ -40,8 +40,8 @@ import {
 } from './utils/helpers.js';
 
 const DEVICE_STORAGE_KEY = 'coldchain_device_id';
-const DEFAULT_DEVICE     = 'node-01';
-const API_BASE           = '/api';
+const DEFAULT_DEVICE = 'node-01';
+const API_BASE = '/api';
 
 function DashboardContent() {
   const { userProfile, logout } = useAuth();
@@ -90,21 +90,21 @@ function DashboardContent() {
     if (trimmed) setDeviceId(trimmed);
   };
 
-  const latest      = readings[readings.length - 1] ?? null;
-  const profile     = status?.product_profile ?? null;
-  const shelfLife   = status?.shelf_life ?? null;
-  const online      = status?.online ?? false;
-  const buffered    = status?.buffered_recovered_count ?? 0;
+  const latest = readings[readings.length - 1] ?? null;
+  const profile = status?.product_profile ?? null;
+  const shelfLife = status?.shelf_life ?? null;
+  const online = status?.online ?? false;
+  const buffered = status?.buffered_recovered_count ?? 0;
 
-  const tColor  = tempColor(latest?.temp_c, profile);
-  const vColor  = vocColor(latest?.voc_raw, profile);
-  const sColor  = shelfLifeColor(shelfLife?.remaining_life_percent);
+  const tColor = tempColor(latest?.temp_c, profile);
+  const vColor = vocColor(latest?.voc_raw, profile);
+  const sColor = shelfLifeColor(shelfLife?.remaining_life_percent);
 
   // Render subviews
   const renderActiveView = () => {
     switch (activeTab) {
       case 'overview':
-        return <OverviewView onNavigate={setActiveTab} />;
+        return <OverviewView onNavigate={setActiveTab} liveReadings={readings} />;
       case 'inventory':
         return <InventoryView />;
       case 'shipments':
@@ -119,8 +119,8 @@ function DashboardContent() {
         return (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl font-bold text-white tracking-tight">Active Excursions &amp; Risk Register</h2>
-              <p className="text-xs text-zinc-400 mt-1">Stateful monitoring of thermal limits, VOC spoilage indicators, and offline alarms.</p>
+              <h2 className="text-xl font-bold text-[#F5F5F5] tracking-tight">Active Excursions &amp; Risk Register</h2>
+              <p className="text-xs text-[#A3A3A3] mt-1">Stateful monitoring of thermal limits, VOC spoilage indicators, and offline alarms.</p>
             </div>
             {activeAlert && <AlertBanner alert={activeAlert} startedAt={activeAlert.started_at} />}
             <AlertTable alerts={alerts} />
@@ -128,15 +128,15 @@ function DashboardContent() {
         );
       case 'reports':
         return (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 text-center space-y-4">
-            <h3 className="text-base font-bold text-white">Regulatory Compliance &amp; HACCP Audit Report</h3>
-            <p className="text-xs text-zinc-400 max-w-md mx-auto">
+          <div className="bg-[#1E1E1E] border border-[#333333] rounded-xl p-8 text-center space-y-4">
+            <h3 className="text-base font-bold text-[#F5F5F5]">Regulatory Compliance &amp; HACCP Audit Report</h3>
+            <p className="text-xs text-[#A3A3A3] max-w-md mx-auto">
               Generates calibrated PDF/CSV logs including temperature excursion durations, Arrhenius shelf-life degradation curves, and batch custody transfer logs.
             </p>
             <button
               disabled
               title="Full export engine ready in upcoming validation phase"
-              className="px-4 py-2.5 rounded-lg bg-zinc-800 text-zinc-500 font-semibold text-xs inline-flex items-center gap-2 cursor-not-allowed border border-zinc-700/60"
+              className="px-4 py-2.5 rounded-lg bg-[#242424] text-[#A3A3A3] font-semibold text-xs inline-flex items-center gap-2 cursor-not-allowed border border-[#333333]"
             >
               <Download size={15} />
               <span>Download Batch Compliance Report (501)</span>
@@ -145,25 +145,25 @@ function DashboardContent() {
         );
       case 'settings':
         return (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 space-y-4 max-w-xl">
-            <h3 className="text-base font-bold text-white">Organization &amp; Node Settings</h3>
+          <div className="bg-[#1E1E1E] border border-[#333333] rounded-xl p-6 space-y-4 max-w-xl">
+            <h3 className="text-base font-bold text-[#F5F5F5]">Organization &amp; Node Settings</h3>
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block text-zinc-400 font-semibold mb-1">Active Organization</label>
-                <input 
-                  type="text" 
-                  disabled 
-                  value={userProfile?.active_organization?.org_name || 'Apex Pharma & Cold Logistics'} 
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2.5 text-zinc-300"
+                <label className="block text-[#A3A3A3] font-semibold mb-1">Active Organization</label>
+                <input
+                  type="text"
+                  disabled
+                  value={userProfile?.active_organization?.org_name || 'Apex Pharma & Cold Logistics'}
+                  className="w-full bg-[#242424] border border-[#333333] rounded-lg p-2.5 text-[#F5F5F5]"
                 />
               </div>
               <div>
-                <label className="block text-zinc-400 font-semibold mb-1">Kinetics Model</label>
-                <input 
-                  type="text" 
-                  disabled 
-                  value="Arrhenius Physical Kinetics (Ea / R · T)" 
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2.5 text-zinc-300"
+                <label className="block text-[#A3A3A3] font-semibold mb-1">Kinetics Model</label>
+                <input
+                  type="text"
+                  disabled
+                  value="Arrhenius Physical Kinetics (Ea / R · T)"
+                  className="w-full bg-[#242424] border border-[#333333] rounded-lg p-2.5 text-[#F5F5F5]"
                 />
               </div>
             </div>
@@ -271,7 +271,7 @@ function DashboardContent() {
   };
 
   return (
-    <div className="flex h-screen bg-zinc-950 text-white font-sans overflow-hidden">
+    <div className="flex h-screen bg-[#171717] text-[#F5F5F5] font-sans overflow-hidden">
       {/* Platform Sidebar */}
       <Sidebar
         activeTab={activeTab}
@@ -285,15 +285,15 @@ function DashboardContent() {
       {/* Main Container */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Header */}
-        <header className="h-16 bg-zinc-900 border-b border-zinc-800 px-6 flex items-center justify-between gap-4 shrink-0">
+        <header className="h-16 bg-[#1E1E1E] border-b border-[#333333] px-6 flex items-center justify-between gap-4 shrink-0">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+              className="p-1.5 rounded-lg text-[#A3A3A3] hover:text-[#F5F5F5] hover:bg-[#242424] transition-colors"
             >
               <Menu size={18} />
             </button>
-            <h2 className="text-sm font-bold text-white capitalize hidden sm:block">
+            <h2 className="text-sm font-bold text-[#F5F5F5] capitalize hidden sm:block">
               {activeTab === 'iot' ? 'IoT Sensor Node Monitor' : activeTab.replace('-', ' ')}
             </h2>
           </div>
@@ -303,7 +303,7 @@ function DashboardContent() {
             {/* Device selector */}
             <div className="flex items-center gap-2">
               <input
-                className="bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-1.5 text-xs text-white w-28 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-mono"
+                className="bg-[#242424] border border-[#333333] rounded-lg px-2.5 py-1.5 text-xs text-[#F5F5F5] w-28 focus:outline-none focus:border-[#16A34A] font-mono"
                 value={deviceInput}
                 onChange={e => setDeviceInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && applyDevice()}
@@ -311,7 +311,7 @@ function DashboardContent() {
               />
               <button
                 onClick={applyDevice}
-                className="p-1.5 rounded-lg bg-zinc-700 hover:bg-zinc-600 text-zinc-300"
+                className="p-1.5 rounded-lg bg-[#242424] hover:bg-[#333333] border border-[#333333] text-[#A3A3A3] hover:text-[#F5F5F5] transition-colors"
                 title="Connect Node"
               >
                 <RefreshCw size={12} />
@@ -321,7 +321,7 @@ function DashboardContent() {
             {/* Profile Dropdown */}
             <div className="hidden md:flex items-center gap-1.5">
               <select
-                className="bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-emerald-500 font-medium"
+                className="bg-[#242424] border border-[#333333] rounded-lg px-2.5 py-1.5 text-xs text-[#F5F5F5] focus:outline-none focus:border-[#16A34A] font-medium"
                 value={profile?.id ?? ''}
                 onChange={e => handleProfileChange(e.target.value)}
                 disabled={profileChanging || profiles.length === 0}
@@ -337,28 +337,28 @@ function DashboardContent() {
             {/* Online Status Pill */}
             <div className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg border ${
               online
-                ? 'bg-emerald-950/60 border-emerald-700/50 text-emerald-300'
-                : 'bg-zinc-800 border-zinc-700 text-zinc-500'
+                ? 'bg-[#16A34A]/15 border-[#16A34A]/40 text-[#16A34A]'
+                : 'bg-[#242424] border-[#333333] text-[#A3A3A3]'
             }`}>
               {online ? <Wifi size={12} /> : <WifiOff size={12} />}
-              <span className="text-[11px]">{online ? 'Online' : 'Offline'}</span>
+              <span className="text-[11px] font-bold">{online ? 'Online' : 'Offline'}</span>
             </div>
 
             {/* SSE Pulse Indicator */}
             <div className={`flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-full border ${
               connState === 'live'
-                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                ? 'bg-[#16A34A]/10 text-[#16A34A] border-[#16A34A]/30'
+                : 'bg-[#D97706]/10 text-[#D97706] border-[#D97706]/30'
             }`}>
               {connState === 'live' ? (
-                <><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />Live SSE</>
+                <><span className="w-1.5 h-1.5 rounded-full bg-[#16A34A] animate-pulse" />Live SSE</>
               ) : (
-                <><Loader2 size={10} className="animate-spin" />Sync</>
+                <><Loader2 size={10} className="animate-spin text-[#D97706]" />Sync</>
               )}
             </div>
 
             {buffered > 0 && (
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 hidden lg:inline-block">
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#D97706]/15 text-[#D97706] border border-[#D97706]/30 hidden lg:inline-block">
                 📦 {buffered} recovered
               </span>
             )}

@@ -16,37 +16,37 @@ export function MetricCard({ type, label, value, unit, badge, badgeColor, subLab
   const Icon = ICONS[type] || Thermometer
 
   const borderColors = {
-    green:  'border-emerald-500/50',
-    amber:  'border-amber-400/50',
-    red:    'border-rose-500/50',
-    blue:   'border-sky-400/50',
-    gray:   'border-zinc-600/50',
+    green:  'border-[#16A34A]/40',
+    amber:  'border-[#D97706]/40',
+    red:    'border-[#A31C18]/40',
+    blue:   'border-[#64748B]/40',
+    gray:   'border-[#333333]',
   }
 
   const badgeColors = {
-    green:  'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30',
-    amber:  'bg-amber-400/20 text-amber-300 border border-amber-400/30',
-    red:    'bg-rose-500/20 text-rose-300 border border-rose-500/30',
-    blue:   'bg-sky-400/20 text-sky-300 border border-sky-400/30',
-    gray:   'bg-zinc-700/50 text-zinc-400 border border-zinc-600/30',
+    green:  'bg-[#16A34A]/15 text-[#16A34A] border border-[#16A34A]/30',
+    amber:  'bg-[#D97706]/15 text-[#D97706] border border-[#D97706]/30',
+    red:    'bg-[#A31C18]/15 text-[#A31C18] border border-[#A31C18]/30',
+    blue:   'bg-[#64748B]/15 text-[#64748B] border border-[#64748B]/30',
+    gray:   'bg-[#242424] text-[#A3A3A3] border border-[#333333]',
   }
 
   const iconColors = {
-    green:  'text-emerald-400',
-    amber:  'text-amber-400',
-    red:    'text-rose-400',
-    blue:   'text-sky-400',
-    gray:   'text-zinc-500',
+    green:  'text-[#16A34A]',
+    amber:  'text-[#D97706]',
+    red:    'text-[#A31C18]',
+    blue:   'text-[#64748B]',
+    gray:   'text-[#A3A3A3]',
   }
 
   const color = badgeColor || 'gray'
 
   return (
-    <div className={`bg-zinc-800/80 backdrop-blur border ${borderColors[color]} rounded-xl p-5 flex flex-col gap-3 shadow-lg`}>
+    <div className={`bg-[#1E1E1E] border ${borderColors[color]} rounded-xl p-5 flex flex-col gap-3 shadow-sm`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Icon size={18} className={iconColors[color]} />
-          <span className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">{label}</span>
+          <span className="text-xs font-semibold text-[#A3A3A3] uppercase tracking-widest">{label}</span>
         </div>
         {badge && (
           <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${badgeColors[color]}`}>
@@ -56,14 +56,14 @@ export function MetricCard({ type, label, value, unit, badge, badgeColor, subLab
       </div>
 
       <div className="flex items-baseline gap-2">
-        <span className="text-3xl font-extrabold text-white tabular-nums leading-none">
+        <span className="text-3xl font-extrabold text-[#F5F5F5] font-mono tabular-nums leading-none">
           {value ?? '—'}
         </span>
-        {unit && <span className="text-sm text-zinc-400 font-medium">{unit}</span>}
+        {unit && <span className="text-sm text-[#A3A3A3] font-medium">{unit}</span>}
       </div>
 
       {subLabel && (
-        <p className="text-xs text-zinc-500 border-t border-zinc-700/60 pt-2">{subLabel}</p>
+        <p className="text-xs text-[#A3A3A3] border-t border-[#333333] pt-2">{subLabel}</p>
       )}
     </div>
   )

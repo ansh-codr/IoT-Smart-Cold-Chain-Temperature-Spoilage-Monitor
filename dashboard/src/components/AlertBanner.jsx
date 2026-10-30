@@ -8,18 +8,21 @@ import { fmtDuration, alertLabel } from '../utils/helpers.js'
 
 const SEV_STYLES = {
   critical: {
-    wrapper: 'bg-rose-950/80 border-rose-500/60 text-rose-200',
-    icon:    'text-rose-400',
+    wrapper: 'bg-[#A31C18]/15 border-[#A31C18]/40 text-[#F5F5F5]',
+    icon:    'text-[#A31C18]',
+    badge:   'bg-[#A31C18]/20 text-[#A31C18] border-[#A31C18]/40',
     Icon:    XCircle,
   },
   warning: {
-    wrapper: 'bg-amber-950/80 border-amber-500/60 text-amber-200',
-    icon:    'text-amber-400',
+    wrapper: 'bg-[#D97706]/15 border-[#D97706]/40 text-[#F5F5F5]',
+    icon:    'text-[#D97706]',
+    badge:   'bg-[#D97706]/20 text-[#D97706] border-[#D97706]/40',
     Icon:    AlertTriangle,
   },
   info: {
-    wrapper: 'bg-sky-950/80 border-sky-500/60 text-sky-200',
-    icon:    'text-sky-400',
+    wrapper: 'bg-[#64748B]/15 border-[#64748B]/40 text-[#F5F5F5]',
+    icon:    'text-[#64748B]',
+    badge:   'bg-[#64748B]/20 text-[#64748B] border-[#64748B]/40',
     Icon:    Info,
   },
 }
@@ -38,19 +41,19 @@ export function AlertBanner({ alert, startedAt }) {
   return (
     <div
       role="alert"
-      className={`flex items-start gap-3 rounded-xl border px-4 py-3 shadow-lg ${style.wrapper}`}
+      className={`flex items-start gap-3 rounded-xl border px-4 py-3 shadow-sm ${style.wrapper}`}
     >
       <Icon size={20} className={`mt-0.5 shrink-0 ${style.icon}`} />
       <div className="flex-1 min-w-0">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="font-bold text-sm">{alertLabel(alert.type)}</span>
-          <span className={`text-[11px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded border ${style.icon} border-current bg-white/5`}>
+          <span className="font-bold text-sm text-[#F5F5F5]">{alertLabel(alert.type)}</span>
+          <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${style.badge}`}>
             {sev}
           </span>
         </div>
-        <p className="text-xs opacity-80 mt-0.5">{alert.message}</p>
+        <p className="text-xs text-[#A3A3A3] mt-0.5">{alert.message}</p>
         {durationS !== null && (
-          <p className="text-[11px] opacity-60 mt-1">
+          <p className="text-[11px] text-[#A3A3A3] opacity-80 mt-1">
             Active for {fmtDuration(durationS)}
             {alert.peak_value !== null && alert.peak_value !== undefined
               ? ` · Peak: ${Number(alert.peak_value).toFixed(2)}`

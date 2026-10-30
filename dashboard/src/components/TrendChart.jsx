@@ -61,23 +61,23 @@ export function TrendChart({ readings = [], profile = null }) {
   }
 
   return (
-    <div className="bg-zinc-800/80 border border-zinc-700/50 rounded-xl p-5 shadow-lg flex flex-col gap-4">
+    <div className="bg-[#1E1E1E] border border-[#333333] rounded-xl p-5 shadow-sm flex flex-col gap-4">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider">
+        <h2 className="text-xs font-bold text-[#F5F5F5] uppercase tracking-wider">
           Live Sensor Trend
         </h2>
 
         {/* Range selector */}
-        <div className="flex items-center gap-1 bg-zinc-900/60 rounded-lg p-1 text-xs">
+        <div className="flex items-center gap-1 bg-[#242424] border border-[#333333] rounded-lg p-0.5 text-xs">
           {Object.keys(RANGE_MINUTES).map(r => (
             <button
               key={r}
               onClick={() => setRange(r)}
               className={`px-3 py-1 rounded-md font-semibold transition-colors ${
                 range === r
-                  ? 'bg-emerald-600 text-white'
-                  : 'text-zinc-400 hover:text-white'
+                  ? 'bg-[#16A34A] text-white shadow-sm'
+                  : 'text-[#A3A3A3] hover:text-[#F5F5F5]'
               }`}
             >
               {r}
@@ -92,66 +92,67 @@ export function TrendChart({ readings = [], profile = null }) {
               type="checkbox"
               checked={showHumidity}
               onChange={e => setShowHumidity(e.target.checked)}
-              className="accent-sky-400"
+              className="accent-[#64748B]"
             />
-            <span className="text-sky-400 font-medium">Humidity %</span>
+            <span className="text-[#64748B] font-semibold">Humidity %</span>
           </label>
           <label className="flex items-center gap-1.5 cursor-pointer">
             <input
               type="checkbox"
               checked={showVoc}
               onChange={e => setShowVoc(e.target.checked)}
-              className="accent-amber-400"
+              className="accent-[#D97706]"
             />
-            <span className="text-amber-400 font-medium">VOC raw</span>
+            <span className="text-[#D97706] font-semibold">VOC raw</span>
           </label>
         </div>
       </div>
 
       {/* Chart */}
       {filtered.length === 0 ? (
-        <div className="h-56 flex items-center justify-center text-zinc-500 text-sm">
+        <div className="h-56 flex items-center justify-center text-[#A3A3A3] text-xs">
           No readings in the selected time range
         </div>
       ) : (
         <ResponsiveContainer width="100%" height={240}>
           <ComposedChart data={filtered} margin={{ top: 4, right: 12, bottom: 0, left: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#333333" />
             <XAxis
               dataKey="ts"
               tickFormatter={fmtTime}
-              tick={{ fill: '#71717a', fontSize: 11 }}
+              tick={{ fill: '#A3A3A3', fontSize: 11 }}
               tickLine={false}
-              axisLine={false}
+              axisLine={{ stroke: '#333333' }}
               minTickGap={40}
             />
             {/* Left axis: temperature */}
             <YAxis
               yAxisId="temp"
-              tick={{ fill: '#71717a', fontSize: 11 }}
+              tick={{ fill: '#A3A3A3', fontSize: 11 }}
               tickLine={false}
-              axisLine={false}
+              axisLine={{ stroke: '#333333' }}
               width={36}
-              label={{ value: '°C', position: 'insideTop', fill: '#71717a', fontSize: 11 }}
+              label={{ value: '°C', position: 'insideTop', fill: '#A3A3A3', fontSize: 11 }}
             />
             {/* Right axis: humidity & VOC */}
             {(showHumidity || showVoc) && (
               <YAxis
                 yAxisId="right"
                 orientation="right"
-                tick={{ fill: '#71717a', fontSize: 11 }}
+                tick={{ fill: '#A3A3A3', fontSize: 11 }}
                 tickLine={false}
-                axisLine={false}
+                axisLine={{ stroke: '#333333' }}
                 width={40}
               />
             )}
 
             <Tooltip
               contentStyle={{
-                backgroundColor: '#18181b',
-                border: '1px solid #3f3f46',
+                backgroundColor: '#1E1E1E',
+                border: '1px solid #333333',
                 borderRadius: 8,
                 fontSize: 12,
+                color: '#F5F5F5'
               }}
               labelFormatter={fmtTime}
               formatter={(val, name) => {
@@ -162,7 +163,7 @@ export function TrendChart({ readings = [], profile = null }) {
               }}
             />
             <Legend
-              wrapperStyle={{ fontSize: 12, color: '#a1a1aa' }}
+              wrapperStyle={{ fontSize: 12, color: '#A3A3A3' }}
             />
 
             {/* Safe zone band */}
@@ -171,8 +172,8 @@ export function TrendChart({ readings = [], profile = null }) {
                 yAxisId="temp"
                 y1={tMin}
                 y2={tMax}
-                fill="#10b981"
-                fillOpacity={0.07}
+                fill="#16A34A"
+                fillOpacity={0.08}
                 strokeOpacity={0}
               />
             )}
@@ -182,10 +183,10 @@ export function TrendChart({ readings = [], profile = null }) {
               yAxisId="temp"
               type="monotone"
               dataKey="temp_c"
-              stroke="#10b981"
+              stroke="#16A34A"
               strokeWidth={2}
               dot={<BufferedDot />}
-              activeDot={{ r: 4, fill: '#10b981' }}
+              activeDot={{ r: 4, fill: '#16A34A' }}
               isAnimationActive={false}
               name="temp_c"
             />
@@ -196,7 +197,7 @@ export function TrendChart({ readings = [], profile = null }) {
                 yAxisId="right"
                 type="monotone"
                 dataKey="humidity"
-                stroke="#38bdf8"
+                stroke="#64748B"
                 strokeWidth={1.5}
                 dot={false}
                 isAnimationActive={false}
@@ -210,7 +211,7 @@ export function TrendChart({ readings = [], profile = null }) {
                 yAxisId="right"
                 type="monotone"
                 dataKey="voc_raw"
-                stroke="#f59e0b"
+                stroke="#D97706"
                 strokeWidth={1.5}
                 dot={false}
                 isAnimationActive={false}
@@ -223,12 +224,12 @@ export function TrendChart({ readings = [], profile = null }) {
       )}
 
       {/* Legend note for buffered */}
-      <p className="text-[11px] text-zinc-500">
-        <span className="inline-block w-3 h-3 rounded-full border-2 border-amber-400 mr-1.5 align-middle" />
+      <p className="text-[11px] text-[#A3A3A3]">
+        <span className="inline-block w-2.5 h-2.5 rounded-full border-2 border-[#D97706] mr-1.5 align-middle" />
         Hollow amber circles = offline-buffered readings
         {tMin !== null && (
           <span className="ml-4">
-            <span className="text-emerald-400 font-semibold">Safe zone: {tMin}°C – {tMax}°C</span>
+            <span className="text-[#16A34A] font-semibold">Safe zone: {tMin}°C – {tMax}°C</span>
           </span>
         )}
       </p>

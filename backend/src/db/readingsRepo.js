@@ -9,6 +9,28 @@
 import { pool } from './pool.js';
 
 /**
+ * Normalizes reading rows returned from MySQL (converts DECIMAL strings to numbers,
+ * flags to booleans, and missing sensor values to null).
+ */
+export function formatReadingRow(row) {
+  if (!row) return null;
+  const out = {
+    ...row,
+    seq: Number(row.seq),
+    ts: Number(row.ts),
+    temp_c: Number(row.temp_c),
+    ds18b20_temp_c: row.ds18b20_temp_c !== null && row.ds18b20_temp_c !== undefined ? Number(row.ds18b20_temp_c) : null,
+    dht22_temp_c: row.dht22_temp_c !== null && row.dht22_temp_c !== undefined ? Number(row.dht22_temp_c) : null,
+    humidity: row.humidity !== null && row.humidity !== undefined ? Number(row.humidity) : null,
+    voc_raw: Number(row.voc_raw),
+    buffered: Boolean(row.buffered === 1 || row.buffered === true),
+  };
+  if (row.id !== undefined) out.id = Number(row.id);
+  if (row.received_at !== undefined) out.received_at = Number(row.received_at);
+  return out;
+}
+
+/**
  * Insert a single reading with INSERT IGNORE (idempotent on device_id, seq).
  * Returns affectedRows (1 = inserted, 0 = duplicate).
  *
@@ -18,11 +40,26 @@ import { pool } from './pool.js';
  * @returns {Promise<number>} affectedRows
  */
 export async function insertReading(conn, r, receivedAt) {
+  const ds18b20 = r.ds18b20_temp_c !== undefined && r.ds18b20_temp_c !== null ? r.ds18b20_temp_c : null;
+  const dht22 = r.dht22_temp_c !== undefined && r.dht22_temp_c !== null ? r.dht22_temp_c : null;
+  const humidity = r.humidity !== undefined && r.humidity !== null ? r.humidity : null;
+
   const [result] = await conn.execute(
     `INSERT IGNORE INTO readings
-       (device_id, seq, ts, temp_c, humidity, voc_raw, buffered, received_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    [r.device_id, r.seq, r.ts, r.temp_c, r.humidity, r.voc_raw, r.buffered ? 1 : 0, receivedAt],
+       (device_id, seq, ts, temp_c, ds18b20_temp_c, dht22_temp_c, humidity, voc_raw, buffered, received_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      r.device_id,
+      r.seq,
+      r.ts,
+      r.temp_c,
+      ds18b20,
+      dht22,
+      humidity,
+      r.voc_raw,
+      r.buffered ? 1 : 0,
+      receivedAt,
+    ],
   );
   return result.affectedRows;
 }
@@ -36,13 +73,13 @@ export async function insertReading(conn, r, receivedAt) {
  */
 export async function getAllReadingsSorted(deviceId, conn = pool) {
   const [rows] = await conn.execute(
-    `SELECT id, device_id, seq, ts, temp_c, humidity, voc_raw, buffered, received_at
+    `SELECT id, device_id, seq, ts, temp_c, ds18b20_temp_c, dht22_temp_c, humidity, voc_raw, buffered, received_at
        FROM readings
       WHERE device_id = ?
       ORDER BY ts ASC, seq ASC`,
     [deviceId],
   );
-  return rows;
+  return rows.map(formatReadingRow);
 }
 
 /**
@@ -55,14 +92,20 @@ export async function getAllReadingsSorted(deviceId, conn = pool) {
  */
 export async function getLatestReadings(deviceId, n) {
   const [rows] = await pool.execute(
-    `SELECT ts, temp_c, voc_raw
+    `SELECT ts, temp_c, ds18b20_temp_c, dht22_temp_c, voc_raw
        FROM readings
       WHERE device_id = ?
       ORDER BY ts DESC, seq DESC
       LIMIT ?`,
     [deviceId, n],
   );
-  return rows;
+  return rows.map(r => ({
+    ts: Number(r.ts),
+    temp_c: Number(r.temp_c),
+    ds18b20_temp_c: r.ds18b20_temp_c !== null && r.ds18b20_temp_c !== undefined ? Number(r.ds18b20_temp_c) : null,
+    dht22_temp_c: r.dht22_temp_c !== null && r.dht22_temp_c !== undefined ? Number(r.dht22_temp_c) : null,
+    voc_raw: Number(r.voc_raw),
+  }));
 }
 
 /**
@@ -79,7 +122,7 @@ export async function getLatestReadings(deviceId, n) {
 export async function queryReadings({ device_id, from, to, limit }) {
   const toTs = to ?? Math.floor(Date.now() / 1000);
   const [rows] = await pool.execute(
-    `SELECT id, seq, ts, temp_c, humidity, voc_raw, buffered, received_at
+    `SELECT id, seq, ts, temp_c, ds18b20_temp_c, dht22_temp_c, humidity, voc_raw, buffered, received_at
        FROM readings
       WHERE device_id = ?
         AND ts >= ?
@@ -88,7 +131,7 @@ export async function queryReadings({ device_id, from, to, limit }) {
       LIMIT ?`,
     [device_id, from, toTs, limit],
   );
-  return rows;
+  return rows.map(formatReadingRow);
 }
 
 /**
@@ -114,12 +157,12 @@ export async function countBuffered(deviceId) {
  */
 export async function getLatestReading(deviceId) {
   const [rows] = await pool.execute(
-    `SELECT seq, ts, temp_c, humidity, voc_raw, buffered
+    `SELECT seq, ts, temp_c, ds18b20_temp_c, dht22_temp_c, humidity, voc_raw, buffered
        FROM readings
       WHERE device_id = ?
       ORDER BY ts DESC, seq DESC
       LIMIT 1`,
     [deviceId],
   );
-  return rows[0] ?? null;
+  return rows[0] ? formatReadingRow(rows[0]) : null;
 }

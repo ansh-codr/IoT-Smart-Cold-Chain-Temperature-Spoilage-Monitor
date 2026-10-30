@@ -118,7 +118,13 @@ export async function ingest(payload) {
 
       // Broadcast 'reading' event
       for (const r of newlyInserted) {
-        sseManager.broadcast(deviceId, 'reading', r);
+        const broadcastReading = {
+          ...r,
+          ds18b20_temp_c: r.ds18b20_temp_c !== undefined ? r.ds18b20_temp_c : null,
+          dht22_temp_c: r.dht22_temp_c !== undefined ? r.dht22_temp_c : null,
+          humidity: r.humidity !== undefined ? r.humidity : null,
+        };
+        sseManager.broadcast(deviceId, 'reading', broadcastReading);
       }
     } else {
       await conn.commit();
