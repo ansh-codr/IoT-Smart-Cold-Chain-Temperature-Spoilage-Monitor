@@ -39,3 +39,4 @@ try {
 }
 
 export { admin, firebaseApp, isConfigured };
+

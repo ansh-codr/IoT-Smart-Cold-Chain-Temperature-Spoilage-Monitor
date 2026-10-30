@@ -122,3 +122,4 @@ export function Sidebar({ activeTab, onSelectTab, userProfile, onLogout, collaps
     </aside>
   );
 }
+

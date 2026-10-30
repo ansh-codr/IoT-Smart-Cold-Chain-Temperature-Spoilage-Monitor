@@ -15,3 +15,4 @@ authRouter.get('/auth/me', requireAuth, (req, res) => {
     active_organization: req.activeOrg
   });
 });
+

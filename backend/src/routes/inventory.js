@@ -102,3 +102,4 @@ inventoryRouter.get('/warehouses', requireAuth, async (req, res, next) => {
     next(err);
   }
 });
+

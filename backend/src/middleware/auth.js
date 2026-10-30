@@ -170,3 +170,4 @@ export async function requireDeviceAuth(req, res, next) {
     next(err);
   }
 }
+

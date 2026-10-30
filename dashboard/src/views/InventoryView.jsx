@@ -232,3 +232,4 @@ export function InventoryView() {
     </div>
   );
 }
+
