@@ -21,6 +21,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { TrendChart } from '../components/TrendChart.jsx';
+import { ShelfLifeSpecimen } from '../components/ShelfLifeSpecimen.jsx';
 import { ShelfLifeGauge } from '../components/ShelfLifeGauge.jsx';
 import { tempColor, tempBadge, vocColor, vocBadge, shelfLifeColor, fmtTs } from '../utils/helpers.js';
 
@@ -173,6 +174,7 @@ export function OverviewView({ onNavigate, liveReadings = [] }) {
       </div>
 
       {/* Primary KPI Metrics Grid */}
+      <ShelfLifeSpecimen percent={telemetry?.remaining_life_percent ?? telemetry?.shelf_life?.remaining_life_percent} rateFactor={telemetry?.rate_factor ?? 1} />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {cards.map((c, i) => {
           const Icon = c.icon;
@@ -232,6 +234,10 @@ export function OverviewView({ onNavigate, liveReadings = [] }) {
 
         {/* 4 Sensor Metric Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-[#242424] border border-[#333333] rounded-xl p-4">
+            <p className="text-xs font-bold text-[#A3A3A3] uppercase tracking-wider">Probe cross-check</p>
+            {latestR?.ds18b20_temp_c != null ? <><p className="text-2xl font-mono font-bold text-[#F5F5F5] mt-2">Δ {Math.abs(Number(latestR.ds18b20_temp_c) - Number(latestR.dht22_temp_c ?? latestR.temp_c)).toFixed(2)}°C</p><p className="text-[11px] text-[#A3A3A3]">DS18B20 {Number(latestR.ds18b20_temp_c).toFixed(2)}°C · DHT22 {Number(latestR.dht22_temp_c ?? latestR.temp_c).toFixed(2)}°C</p></> : <><p className="text-sm font-bold text-[#F5F5F5] mt-3">Probe unavailable</p><p className="text-[11px] text-[#A3A3A3]">Wire DS18B20 to activate drift monitoring.</p></>}
+          </div>
           {/* Temperature */}
           <div className={`bg-[#242424] border ${tColor === 'red' ? 'border-[#A31C18]' : tColor === 'amber' ? 'border-[#D97706]' : 'border-[#333333]'} rounded-xl p-4 flex flex-col justify-between`}>
             <div className="flex items-center justify-between">

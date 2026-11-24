@@ -21,7 +21,7 @@ This is the Node.js + Express backend for the Smart Cold Chain Temperature & Spo
 
    | Variable | Default | Description |
    |---|---|---|
-   | \`PORT\` | \`3000\` | HTTP server port |
+   | \`PORT\` | \`5000\` | HTTP server port |
    | \`HOST\` | \`0.0.0.0\` | HTTP server bind address |
    | \`CORS_ORIGIN\` | \`http://localhost:5173\` | Allowed CORS origin (Dashboard) |
    | \`DB_HOST\` | \`localhost\` | MySQL host / socket |
@@ -58,7 +58,7 @@ This is the Node.js + Express backend for the Smart Cold Chain Temperature & Spo
 **Endpoint:** \`POST /api/readings\`
 \`\`\`bash
 # Single reading
-curl -X POST http://localhost:3000/api/readings \\
+curl -X POST http://localhost:5000/api/readings \\
   -H "Content-Type: application/json" \\
   -d '{
     "device_id": "node-01",
@@ -71,7 +71,7 @@ curl -X POST http://localhost:3000/api/readings \\
   }'
 
 # Batch reading (buffered)
-curl -X POST http://localhost:3000/api/readings \\
+curl -X POST http://localhost:5000/api/readings \\
   -H "Content-Type: application/json" \\
   -d '[
     {"device_id":"node-01","ts":1717199700,"temp_c":3.9,"humidity":77.0,"voc_raw":490,"seq":2,"buffered":true},
@@ -82,31 +82,31 @@ curl -X POST http://localhost:3000/api/readings \\
 ### 2. Get Device Status
 **Endpoint:** \`GET /api/status?device_id=node-01\`
 \`\`\`bash
-curl -s "http://localhost:3000/api/status?device_id=node-01"
+curl -s "http://localhost:5000/api/status?device_id=node-01"
 \`\`\`
 
 ### 3. Get Alert History
 **Endpoint:** \`GET /api/alerts?device_id=node-01&limit=50\`
 \`\`\`bash
-curl -s "http://localhost:3000/api/alerts?device_id=node-01&limit=50"
+curl -s "http://localhost:5000/api/alerts?device_id=node-01&limit=50"
 \`\`\`
 
 ### 4. Get Readings History
 **Endpoint:** \`GET /api/readings?device_id=node-01&limit=100\`
 \`\`\`bash
-curl -s "http://localhost:3000/api/readings?device_id=node-01&limit=100"
+curl -s "http://localhost:5000/api/readings?device_id=node-01&limit=100"
 \`\`\`
 
 ### 5. List Profiles
 **Endpoint:** \`GET /api/profiles\`
 \`\`\`bash
-curl -s "http://localhost:3000/api/profiles"
+curl -s "http://localhost:5000/api/profiles"
 \`\`\`
 
 ### 6. Change Device Profile
 **Endpoint:** \`PUT /api/devices/:device_id/profile\`
 \`\`\`bash
-curl -X PUT http://localhost:3000/api/devices/node-01/profile \\
+curl -X PUT http://localhost:5000/api/devices/node-01/profile \\
   -H "Content-Type: application/json" \\
   -d '{"profile_id": 2}'
 \`\`\`
@@ -114,11 +114,11 @@ curl -X PUT http://localhost:3000/api/devices/node-01/profile \\
 ### 7. Stream Realtime Events (SSE)
 **Endpoint:** \`GET /api/stream?device_id=node-01\`
 \`\`\`bash
-curl -N "http://localhost:3000/api/stream?device_id=node-01"
+curl -N "http://localhost:5000/api/stream?device_id=node-01"
 \`\`\`
 
 ### 8. Health Check
 **Endpoint:** \`GET /health\`
 \`\`\`bash
-curl -s "http://localhost:3000/health"
+curl -s "http://localhost:5000/health"
 \`\`\`

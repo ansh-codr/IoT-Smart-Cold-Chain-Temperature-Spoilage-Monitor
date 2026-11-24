@@ -169,7 +169,7 @@ function DashboardContent() {
             </div>
           </div>
         );
-      case 'iot':
+      case 'iot': return <OverviewView onNavigate={setActiveTab} liveReadings={readings} />;
       default:
         return (
           <div className="space-y-6">
@@ -271,7 +271,7 @@ function DashboardContent() {
   };
 
   return (
-    <div className="flex h-screen bg-[#171717] text-[#F5F5F5] font-sans overflow-hidden">
+    <div className="forensics-shell flex h-screen overflow-hidden">
       {/* Platform Sidebar */}
       <Sidebar
         activeTab={activeTab}
@@ -285,7 +285,7 @@ function DashboardContent() {
       {/* Main Container */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Header */}
-        <header className="h-16 bg-[#1E1E1E] border-b border-[#333333] px-6 flex items-center justify-between gap-4 shrink-0">
+        <header className="forensics-topbar h-16 border-b px-6 flex items-center justify-between gap-4 shrink-0">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}

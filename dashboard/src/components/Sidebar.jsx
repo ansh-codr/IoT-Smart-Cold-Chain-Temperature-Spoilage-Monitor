@@ -21,7 +21,6 @@ export function Sidebar({ activeTab, onSelectTab, userProfile, onLogout, collaps
     { id: 'inventory', label: 'Inventory', icon: Boxes },
     { id: 'profiles', label: 'Product Profiles', icon: Layers },
     { id: 'shipments', label: 'Shipments', icon: Truck },
-    { id: 'iot', label: 'IoT Monitoring', icon: Cpu },
     { id: 'alerts', label: 'Risk & Alerts', icon: AlertTriangle },
     { id: 'replacement', label: 'Replacement Planner', icon: Repeat },
     { id: 'reports', label: 'Reports', icon: FileText },
@@ -31,16 +30,16 @@ export function Sidebar({ activeTab, onSelectTab, userProfile, onLogout, collaps
   const isAdmin = userProfile?.user?.system_role === 'admin' || userProfile?.active_organization?.role === 'platform_admin';
 
   return (
-    <aside className={`bg-[#06110C] border-r border-[#333333] flex flex-col transition-all duration-300 z-40 ${collapsed ? 'w-20' : 'w-64'}`}>
+    <aside className={`forensics-sidebar border-r flex flex-col transition-all duration-300 z-40 ${collapsed ? 'w-20' : 'w-64'}`}>
       {/* Brand Header */}
       <div className="h-16 flex items-center px-4 border-b border-[#333333] gap-3">
-        <div className="w-10 h-10 rounded-xl bg-[#16A34A]/15 border border-[#16A34A]/30 flex items-center justify-center shrink-0">
-          <span className="text-xl">❄️</span>
+        <div className="forensics-mark w-10 h-10 rounded-sm flex items-center justify-center shrink-0">
+          <svg viewBox="0 0 24 24" className="w-6 h-6" aria-hidden="true"><path fill="currentColor" d="M12 2 4 7v10l8 5 8-5V7zm0 3.1 4.8 3L12 11 7.2 8.1zm-5 5.3 4 2.5v4.2l-4-2.5zm6 6.7v-4.2l4-2.5v4.2z"/></svg>
         </div>
         {!collapsed && (
           <div className="overflow-hidden">
-            <h1 className="font-bold text-base tracking-tight text-[#F5F5F5] leading-tight">ColdChain IQ</h1>
-            <p className="text-[10px] text-[#A3A3A3] font-medium tracking-wide">Monitor. Predict. Protect.</p>
+            <h1 className="font-display font-bold text-xl tracking-[.12em] text-[var(--bone)] leading-tight">ColdChain IQ</h1>
+            <p className="text-[10px] text-[var(--muted)] font-medium tracking-[.18em]">THERMAL FORENSICS</p>
           </div>
         )}
       </div>

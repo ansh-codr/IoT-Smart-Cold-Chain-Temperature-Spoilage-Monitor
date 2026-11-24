@@ -4,7 +4,7 @@ React 19 + Vite + Tailwind CSS v4 + Recharts + Lucide-react frontend for the Col
 
 ## Prerequisites
 - Node.js ≥ 20
-- Backend running at `http://localhost:3000` (see `../backend/`)
+- Backend running at `http://localhost:5000` (see `../backend/`)
 - (Optional) Simulator running at `http://localhost:4001` (see `../simulator/`)
 
 ## Setup & Run
@@ -67,7 +67,7 @@ npm start
 **Terminal 3 — Simulator (virtual ESP32):**
 ```bash
 cd simulator
-npm start -- --device node-01 --url http://localhost:3000 --control-port 4001
+npm start -- --device node-01 --url http://localhost:5000 --control-port 4001
 ```
 
 **Terminal 4 — Dashboard:**

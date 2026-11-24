@@ -1,0 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --ink: #120f0d;
+  --ink-raised: #1d1713;
+  --ink-panel: #261e19;
+  --ink-line: #5a473b;
+  --bone: #f5ead8;
+  --muted: #c4ad98;
+  --ember: #ff6b2d;
+  --magenta: #ec3d85;
+  --acid: #c9ff4a;
+  --warning: #ffb547;
+  --danger: #ff4a4a;
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --line: 1px solid var(--ink-line);
+  --noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.4'/%3E%3C/svg%3E");
+}
+
+body { background: var(--ink); color: var(--bone); font-family: var(--font-mono); }
+body::before { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 100; opacity: .045; background-image: var(--noise); mix-blend-mode: screen; }
+h1, h2, h3, .font-display { font-family: var(--font-display); letter-spacing: .035em; }
+.forensics-shell { background: radial-gradient(circle at 82% 0%, #3a1714 0%, var(--ink) 42%); color: var(--bone); }
+.forensics-sidebar, .forensics-topbar { background: color-mix(in srgb, var(--ink-raised) 92%, transparent); border-color: var(--ink-line); }
+.forensics-mark { background: linear-gradient(135deg, var(--ember), var(--magenta)); color: var(--ink); box-shadow: 0 0 24px color-mix(in srgb, var(--ember) 35%, transparent); }
+.forensics-live { color: var(--acid); border-color: color-mix(in srgb, var(--acid) 55%, transparent); }
+.specimen { display:flex; justify-content:space-between; align-items:center; gap:1rem; padding:1.25rem; border:var(--line); background:linear-gradient(120deg,#211915,#312119); overflow:hidden; position:relative; }
+.specimen__eyebrow { color:var(--muted); font-size:.65rem; letter-spacing:.16em; }.specimen__value { font:700 clamp(3rem,8vw,6rem)/.8 var(--font-display); color:var(--bone); }.specimen__value small { color:var(--ember); font-size:.35em; }.specimen__meta { color:var(--acid); font-size:.7rem; margin-top:.75rem; }.specimen svg { width:140px; }.specimen__crate { fill:none; stroke:var(--bone); stroke-width:2; }.specimen__fill { fill:url(#thermal); height:calc(87px * var(--life) / 100); transform:translateY(calc(87px - 87px * var(--life) / 100)); transition:.6s ease; opacity:.8; }.specimen__crack { fill:none; stroke:var(--magenta); stroke-width:0; }.specimen--stressed .specimen__crack { stroke-width:2; filter:drop-shadow(0 0 5px var(--magenta)); }

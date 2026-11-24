@@ -13,7 +13,7 @@ npm start -- [options]
 ```
 
 ## Options
-- `--url <url>` (default: `http://localhost:3000`)
+- `--url <url>` (default: `http://localhost:5000`)
 - `--device <id>` (default: `node-01`)
 - `--interval <seconds>` (default: `2`)
 - `--scenario <scenario>` (default: `normal`)
