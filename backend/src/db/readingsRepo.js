@@ -120,7 +120,9 @@ export async function getLatestReadings(deviceId, n) {
  * @returns {Promise<object[]>}
  */
 export async function queryReadings({ device_id, from, to, limit }) {
+  const fromTs = from ?? 0;
   const toTs = to ?? Math.floor(Date.now() / 1000);
+  const limitVal = limit ?? 100;
   const [rows] = await pool.execute(
     `SELECT id, seq, ts, temp_c, ds18b20_temp_c, dht22_temp_c, humidity, voc_raw, buffered, received_at
        FROM readings
@@ -129,7 +131,7 @@ export async function queryReadings({ device_id, from, to, limit }) {
         AND ts <= ?
       ORDER BY ts ASC
       LIMIT ?`,
-    [device_id, from, toTs, limit],
+    [device_id, fromTs, toTs, limitVal],
   );
   return rows.map(formatReadingRow);
 }

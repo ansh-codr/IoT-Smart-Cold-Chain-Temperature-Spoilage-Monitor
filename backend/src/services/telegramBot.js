@@ -108,24 +108,32 @@ async function executeStatus(chatId, devId) {
 }
 
 async function executeReport(chatId, devId) {
-  const deviceData = await stateRepo.getDeviceWithProfile(devId);
-  const readings = await readingsRepo.queryReadings({ device_id: devId, limit: 150 });
-  if (!readings.length) return sendMessage(chatId, `No readings found for \`${devId}\` to generate report.`);
+  try {
+    const deviceData = await stateRepo.getDeviceWithProfile(devId);
+    const readings = await readingsRepo.queryReadings({ device_id: devId, from: 0, to: Math.floor(Date.now() / 1000), limit: 200 });
+    if (!readings.length) return sendMessage(chatId, `No readings found for \`${devId}\` to generate report.`);
 
-  let minT = Infinity, maxT = -Infinity, sumT = 0, sumH = 0, excursions = 0;
-  const profile = deviceData?.profile;
-  for (const r of readings) {
-    const t = Number(r.temp_c);
-    if (t < minT) minT = t;
-    if (t > maxT) maxT = t;
-    sumT += t;
-    if (r.humidity != null) sumH += Number(r.humidity);
-    if (profile && (t < profile.t_min_c || t > profile.t_max_c)) excursions++;
+    let minT = Infinity, maxT = -Infinity, sumT = 0, sumH = 0, excursions = 0;
+    const profile = deviceData?.profile;
+    for (const r of readings) {
+      const t = Number(r.temp_c);
+      if (t < minT) minT = t;
+      if (t > maxT) maxT = t;
+      sumT += t;
+      if (r.humidity != null) sumH += Number(r.humidity);
+      if (profile && (t < profile.t_min_c || t > profile.t_max_c)) excursions++;
+    }
+    const stats = { minTemp: minT, maxTemp: maxT, avgTemp: sumT / readings.length, avgHumidity: sumH / readings.length, excursions };
+    const summary = formatReportSummary(devId, { profile, stats, count: readings.length });
+    const keyboard = await getDeviceButtons('report');
+
+    await sendMessage(chatId, summary, 'Markdown', keyboard);
+    const csvContent = generateReadingsCsv(readings);
+    await sendDocument(chatId, `${devId}_audit_${Date.now()}.csv`, csvContent, `📊 Audit log export for ${devId}`);
+  } catch (err) {
+    console.error(`[telegram] Error executing report for ${devId}:`, err);
+    await sendMessage(chatId, `❌ Failed to generate report for \`${devId}\`: ${err.message}`);
   }
-  const stats = { minTemp: minT, maxTemp: maxT, avgTemp: sumT / readings.length, avgHumidity: sumH / readings.length, excursions };
-  const summary = formatReportSummary(devId, { profile, stats, count: readings.length });
-  const csvContent = generateReadingsCsv(readings);
-  await sendDocument(chatId, `${devId}_audit_${Date.now()}.csv`, csvContent, summary);
 }
 
 async function executeAlerts(chatId, devId) {
@@ -212,8 +220,21 @@ export function startTelegramBot() {
         if (data.ok && Array.isArray(data.result)) {
           for (const u of data.result) {
             offset = u.update_id + 1;
-            if (u.message?.text) await handleCommand(u.message.chat.id, u.message.text);
-            if (u.callback_query) await handleCallbackQuery(u.callback_query);
+            if (u.message?.text) {
+              try {
+                await handleCommand(u.message.chat.id, u.message.text);
+              } catch (cmdErr) {
+                console.error('[telegram] Command handler error:', cmdErr);
+                await sendMessage(u.message.chat.id, `⚠️ Command error: ${cmdErr.message}`);
+              }
+            }
+            if (u.callback_query) {
+              try {
+                await handleCallbackQuery(u.callback_query);
+              } catch (cbErr) {
+                console.error('[telegram] Callback query error:', cbErr);
+              }
+            }
           }
         }
       } catch (err) {
