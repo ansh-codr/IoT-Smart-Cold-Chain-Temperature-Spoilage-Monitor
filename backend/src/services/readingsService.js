@@ -10,6 +10,7 @@ import * as stateRepo from '../db/stateRepo.js';
 import { evaluate as evaluateAlerts } from './alertService.js';
 import * as sseManager from '../realtime/sseManager.js';
 import { applyReading, recomputeFromReadings, computeRemaining } from './decayModel.js';
+import { isBuzzerActive } from './buzzerService.js';
 
 export async function ingest(payload) {
   const readings = Array.isArray(payload) ? payload : [payload];
@@ -130,8 +131,9 @@ export async function ingest(payload) {
       await conn.commit();
     }
 
-    console.log(`[ingest] device=${deviceId} count=${readings.length} accepted=${accepted} duplicates=${duplicates}`);
-    return { accepted, duplicates };
+    const buzzerActive = isBuzzerActive(deviceId);
+    console.log(`[ingest] device=${deviceId} count=${readings.length} accepted=${accepted} duplicates=${duplicates} buzzer=${buzzerActive}`);
+    return { accepted, duplicates, buzzer: buzzerActive };
 
   } catch (err) {
     await conn.rollback();

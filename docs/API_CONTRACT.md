@@ -123,11 +123,13 @@ Idempotent on `(device_id, seq)` — duplicate entries are silently ignored and 
 ```json
 {
   "accepted": 2,
-  "duplicates": 0
+  "duplicates": 0,
+  "buzzer": false
 }
 ```
 
 For a single reading, `accepted` is either `1` or `0` (if duplicate).
+`buzzer`: optional boolean (`true` if a cabin buzzer alarm has been triggered remotely by the owner or by a critical active excursion, instructing the hardware node to beep).
 
 #### Notes
 - Batch arrays may contain up to **200** readings per request.
@@ -513,32 +515,40 @@ data: <JSON string>
 
 ### `GET /api/report`
 
-**Status: Contract defined; implementation deferred to a future phase.**
-
 #### Query Parameters
 
 | Param | Type | Required | Notes |
 |---|---|---|---|
-| `device_id` | string | ✅ | |
-| `from` | integer | ✅ | Unix seconds |
-| `to` | integer | ✅ | Unix seconds |
-| `format` | string | ✅ | `csv` or `pdf` |
+| `device_id` | string | ✅ | Device identifier |
+| `from` | integer | ❌ | Unix seconds (defaults to 0 / earliest) |
+| `to` | integer | ❌ | Unix seconds (defaults to now) |
+| `format` | string | ❌ | `csv` (default) or `json` |
 
 #### Success (csv) — 200
 `Content-Type: text/csv`
-Raw CSV file download.
+Raw CSV file download for audit analysis.
 
-#### Success (pdf) — 200
-`Content-Type: application/pdf`
-PDF file download.
+---
 
-#### Error — 501 (Not Implemented, until the feature is built)
+### `POST /api/devices/:device_id/buzzer`
+
+Trigger or test the remote cabin buzzer on the physical ESP32 node.
+
+#### Request Body (Optional)
 ```json
 {
-  "error": {
-    "code": "NOT_IMPLEMENTED",
-    "message": "Report generation is not yet implemented"
-  }
+  "duration_s": 5,
+  "pattern": "alarm"
+}
+```
+
+#### Success — 200
+```json
+{
+  "success": true,
+  "device_id": "node-03",
+  "buzzer_active": true,
+  "message": "Cabin alarm command queued for delivery to ESP32 node"
 }
 ```
 

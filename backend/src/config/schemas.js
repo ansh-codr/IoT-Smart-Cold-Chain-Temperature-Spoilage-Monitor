@@ -98,9 +98,16 @@ export const GetStreamQuerySchema = z.object({
 // ─── GET /api/report query params ────────────────────────────────────────────
 export const GetReportQuerySchema = z.object({
   device_id: z.string().min(1).max(64),
-  from:      z.coerce.number().int().positive(),
-  to:        z.coerce.number().int().positive(),
-  format:    z.enum(['csv', 'pdf']),
+  from:      z.coerce.number().int().min(0).optional().default(0),
+  to:        z.coerce.number().int().min(0).optional(),
+  format:    z.enum(['csv', 'pdf', 'json']).optional().default('csv'),
+});
+
+// ─── POST /api/devices/:device_id/buzzer body ────────────────────────────────
+export const PostBuzzerBodySchema = z.object({
+  duration_s:   z.coerce.number().int().min(1).max(60).optional().default(10),
+  pattern:      z.string().optional().default('alarm'),
+  triggered_by: z.string().optional().default('user'),
 });
 
 // ─── POST /api/sim/scenario body ─────────────────────────────────────────────

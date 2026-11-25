@@ -12,19 +12,21 @@ import {
   ShieldAlert,
   ChevronRight,
   LogOut,
-  Building2
+  Building2,
+  Navigation
 } from 'lucide-react';
 
 export function Sidebar({ activeTab, onSelectTab, userProfile, onLogout, collapsed, onToggleCollapse }) {
   const navItems = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'node', label: 'IoT Node Console', icon: Cpu },
+    { id: 'fleet', label: 'Fleet Transit Map', icon: Navigation },
     { id: 'inventory', label: 'Inventory', icon: Boxes },
     { id: 'profiles', label: 'Product Profiles', icon: Layers },
     { id: 'shipments', label: 'Shipments', icon: Truck },
     { id: 'alerts', label: 'Risk & Alerts', icon: AlertTriangle },
     { id: 'replacement', label: 'Replacement Planner', icon: Repeat },
-    { id: 'reports', label: 'Reports', icon: FileText },
+    { id: 'reports', label: 'Audit Reports (PDF)', icon: FileText },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 

@@ -24,6 +24,8 @@ import { ShipmentsView } from './views/ShipmentsView.jsx';
 import { ReplacementView } from './views/ReplacementView.jsx';
 import { AdminView } from './views/AdminView.jsx';
 import { ProfilesView } from './views/ProfilesView.jsx';
+import { ReportsView } from './views/ReportsView.jsx';
+import { FleetMapView } from './views/FleetMapView.jsx';
 
 import { useDeviceStream } from './hooks/useDeviceStream.js';
 import { MetricCard } from './components/MetricCard.jsx';
@@ -31,6 +33,7 @@ import { ShelfLifeGauge } from './components/ShelfLifeGauge.jsx';
 import { TrendChart } from './components/TrendChart.jsx';
 import { AlertBanner } from './components/AlertBanner.jsx';
 import { AlertTable } from './components/AlertTable.jsx';
+import { Volume2 } from 'lucide-react';
 
 import {
   tempColor, tempBadge,
@@ -55,6 +58,25 @@ function DashboardContent() {
   });
   const [deviceInput, setDeviceInput] = useState(deviceId);
   const [profileChanging, setProfileChanging] = useState(false);
+  const [buzzerActive, setBuzzerActive] = useState(false);
+  const [buzzerLoading, setBuzzerLoading] = useState(false);
+
+  const handleTriggerBuzzer = useCallback(async (devId = deviceId) => {
+    setBuzzerLoading(true);
+    try {
+      await fetch(`/api/devices/${devId}/buzzer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ duration_s: 20, triggered_by: 'dashboard' })
+      });
+      setBuzzerActive(true);
+      setTimeout(() => setBuzzerActive(false), 20000);
+    } catch (e) {
+      console.error('Buzzer trigger failed:', e);
+    } finally {
+      setBuzzerLoading(false);
+    }
+  }, [deviceId]);
 
   const {
     readings,
@@ -138,23 +160,16 @@ function DashboardContent() {
             <AlertTable alerts={alerts} />
           </div>
         );
-      case 'reports':
+      case 'fleet':
         return (
-          <div className="bg-[#1E1E1E] border border-[#333333] rounded-xl p-8 text-center space-y-4">
-            <h3 className="text-base font-bold text-[#F5F5F5]">Regulatory Compliance &amp; HACCP Audit Report</h3>
-            <p className="text-xs text-[#A3A3A3] max-w-md mx-auto">
-              Generates calibrated PDF/CSV logs including temperature excursion durations, Arrhenius shelf-life degradation curves, and batch custody transfer logs.
-            </p>
-            <button
-              disabled
-              title="Full export engine ready in upcoming validation phase"
-              className="px-4 py-2.5 rounded-lg bg-[#242424] text-[#A3A3A3] font-semibold text-xs inline-flex items-center gap-2 cursor-not-allowed border border-[#333333]"
-            >
-              <Download size={15} />
-              <span>Download Batch Compliance Report (501)</span>
-            </button>
-          </div>
+          <FleetMapView 
+            activeDeviceId={deviceId} 
+            liveTemp={latest?.temp_c != null ? Number(latest.temp_c) : 26.1} 
+            onTriggerBuzzer={handleTriggerBuzzer}
+          />
         );
+      case 'reports':
+        return <ReportsView activeDeviceId={deviceId} />;
       case 'settings':
         return (
           <div className="bg-[#1E1E1E] border border-[#333333] rounded-xl p-6 space-y-4 max-w-xl">
@@ -331,6 +346,21 @@ function DashboardContent() {
                 <RefreshCw size={12} />
               </button>
             </div>
+
+            {/* Emergency Hardware Cabin Buzzer Actuator */}
+            <button
+              onClick={() => handleTriggerBuzzer(deviceId)}
+              disabled={buzzerLoading}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 transition-all border shadow-sm ${
+                buzzerActive
+                  ? 'bg-[#EF4444] text-white border-white animate-pulse shadow-[#EF4444]/40'
+                  : 'bg-[#EF4444]/15 hover:bg-[#EF4444]/25 text-[#EF4444] border-[#EF4444]/40'
+              }`}
+              title="Trigger remote hardware cabin alarm on ESP32 (GPIO 25)"
+            >
+              <Volume2 size={13} className={buzzerActive ? 'animate-bounce' : ''} />
+              <span className="hidden lg:inline">{buzzerActive ? 'Cabin Alarm Active!' : '🚨 Trigger Buzzer'}</span>
+            </button>
 
             {/* Profile Dropdown */}
             <div className="hidden md:flex items-center gap-1.5">

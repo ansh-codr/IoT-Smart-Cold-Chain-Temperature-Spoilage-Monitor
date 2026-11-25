@@ -11,6 +11,7 @@ import * as stateRepo from '../db/stateRepo.js';
 import * as readingsRepo from '../db/readingsRepo.js';
 import * as alertsRepo from '../db/alertsRepo.js';
 import { computeRemaining } from './decayModel.js';
+import { triggerBuzzer, clearBuzzer, isBuzzerActive } from './buzzerService.js';
 import {
   formatAlertNotification,
   formatStatusMessage,
@@ -59,7 +60,15 @@ export async function sendDocument(chatId, filename, content, caption = '') {
 export async function notifyAlert(deviceId, alert) {
   if (!env.TELEGRAM_ENABLED || !env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_ID) return;
   const text = formatAlertNotification(deviceId, alert);
-  await sendMessage(env.TELEGRAM_CHAT_ID, text);
+  const keyboard = {
+    inline_keyboard: [
+      [
+        { text: '🚨 Sound Cabin Alarm', callback_data: `buzz:${deviceId}` },
+        { text: '📊 View Status', callback_data: `status:${deviceId}` }
+      ]
+    ]
+  };
+  await sendMessage(env.TELEGRAM_CHAT_ID, text, 'Markdown', keyboard);
 }
 
 // Auto-resolves: "3" -> "node-03", "04" -> "node-04", or defaults to most active live node
@@ -167,6 +176,23 @@ async function handleCommand(chatId, text) {
   } else if (cmd === '/alerts') {
     const devId = await resolveDeviceId(arg);
     await executeAlerts(chatId, devId);
+  } else if (cmd === '/buzz' || cmd === '/alarm') {
+    const devId = await resolveDeviceId(arg);
+    triggerBuzzer(devId, 25, 'telegram_owner');
+    const keyboard = {
+      inline_keyboard: [
+        [
+          { text: '🔕 Silence Buzzer', callback_data: `silence:${devId}` },
+          { text: '📊 Check Status', callback_data: `status:${devId}` }
+        ]
+      ]
+    };
+    await sendMessage(
+      chatId,
+      `🚨 *EMERGENCY CABIN ALARM TRIGGERED!*\n\nRemote buzzer signal dispatched to \`${devId}\`.\nHardware audio alarm active on driver unit.`,
+      'Markdown',
+      keyboard
+    );
   }
 }
 
@@ -181,6 +207,14 @@ async function handleCallbackQuery(cb) {
     const [action, devId] = data.split(':');
     if (action === 'status' && devId) await executeStatus(cb.message.chat.id, devId);
     if (action === 'report' && devId) await executeReport(cb.message.chat.id, devId);
+    if (action === 'buzz' && devId) {
+      triggerBuzzer(devId, 25, 'telegram_button');
+      await sendMessage(cb.message.chat.id, `🚨 Remote cabin buzzer triggered for \`${devId}\`! Driver is being alerted.`);
+    }
+    if (action === 'silence' && devId) {
+      clearBuzzer(devId);
+      await sendMessage(cb.message.chat.id, `🔕 Cabin alarm silenced for \`${devId}\`.`);
+    }
   } catch (err) {
     console.warn('[telegram] Error answering callback:', err.message);
   }
@@ -195,6 +229,7 @@ async function registerBotCommands() {
         commands: [
           { command: 'status', description: 'Live temp, humidity, VOC & shelf life' },
           { command: 'report', description: 'Audit summary & download CSV' },
+          { command: 'buzz', description: '🚨 Trigger remote cabin emergency buzzer' },
           { command: 'alerts', description: 'Active warnings & excursion register' },
           { command: 'devices', description: 'List monitored hardware nodes' },
           { command: 'help', description: 'Show all bot commands and usage' }
