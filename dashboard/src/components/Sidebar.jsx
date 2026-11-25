@@ -18,6 +18,7 @@ import {
 export function Sidebar({ activeTab, onSelectTab, userProfile, onLogout, collapsed, onToggleCollapse }) {
   const navItems = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+    { id: 'node', label: 'IoT Node Console', icon: Cpu },
     { id: 'inventory', label: 'Inventory', icon: Boxes },
     { id: 'profiles', label: 'Product Profiles', icon: Layers },
     { id: 'shipments', label: 'Shipments', icon: Truck },
