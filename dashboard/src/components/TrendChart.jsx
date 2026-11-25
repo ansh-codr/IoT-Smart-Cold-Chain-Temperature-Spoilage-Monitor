@@ -62,7 +62,7 @@ export function TrendChart({ readings = [], profile = null }) {
   };
 
   return (
-    <div className="bg-[#1E1E1E] border border-[#333333] rounded-xl p-5 shadow-sm flex flex-col gap-4">
+    <div className="bg-[#1E1E1E] border border-[#333333] rounded-2xl p-5 shadow-xl flex flex-col justify-between h-full gap-3">
       {/* Header and Live KPI Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#333333]/60 pb-3">
         <div className="flex items-center gap-2.5">
@@ -155,7 +155,7 @@ export function TrendChart({ readings = [], profile = null }) {
           <span>Awaiting live telemetry packets from ESP32 node...</span>
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={260}>
+        <ResponsiveContainer width="100%" height={240}>
           <ComposedChart data={chartData} margin={{ top: 8, right: 16, bottom: 0, left: -10 }}>
             <defs>
               <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">

@@ -340,7 +340,7 @@ function DashboardContent() {
       {/* Main Container */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Header */}
-        <header className="forensics-topbar h-16 border-b px-6 flex items-center justify-between gap-4 shrink-0">
+        <header className="forensics-topbar h-14 border-b px-5 flex items-center justify-between gap-4 shrink-0">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -437,8 +437,8 @@ function DashboardContent() {
         </header>
 
         {/* Scrollable Main Content */}
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-7xl mx-auto space-y-6">
+        <main className="flex-1 overflow-y-auto p-5 lg:p-6">
+          <div className="max-w-[1600px] w-full mx-auto space-y-6">
             {renderActiveView()}
           </div>
         </main>

@@ -177,6 +177,20 @@ export function OverviewView({ onNavigate, liveReadings = [], activeDeviceId, ac
         </div>
       </div>
 
+      {/* ─── TOP HORIZONTAL SECTION: DUAL-MODAL SRI & THERMAL STABILITY TELEMETRY ─── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
+        <DualModalSpoilageWidget 
+          spoilageRisk={telemetry?.spoilage_risk || activeStatus?.spoilage_risk}
+          latestReading={latestR}
+          profile={profile}
+          rateFactor={telemetry?.rate_factor ?? activeStatus?.shelf_life?.rate_factor ?? 1.0}
+        />
+        <TrendChart 
+          readings={liveReadings} 
+          profile={profile || { t_min_c: 2, t_max_c: 8 }} 
+        />
+      </div>
+
       {/* Primary KPI Metrics Grid */}
       <ShelfLifeSpecimen percent={shelfLife?.remaining_life_percent ?? telemetry?.remaining_life_percent} rateFactor={shelfLife?.rate_factor ?? telemetry?.rate_factor ?? 1} />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -327,32 +341,6 @@ export function OverviewView({ onNavigate, liveReadings = [], activeDeviceId, ac
                 : 'Storage at ideal baseline rate'}
             </div>
           </div>
-        </div>
-
-        {/* Dual-Modal Spoilage Risk Index Analyzer */}
-        <DualModalSpoilageWidget 
-          spoilageRisk={telemetry?.spoilage_risk || activeStatus?.spoilage_risk}
-          latestReading={latestR}
-          profile={profile}
-          rateFactor={telemetry?.rate_factor ?? activeStatus?.shelf_life?.rate_factor ?? 1.0}
-        />
-
-        {/* Real-time Trend Chart embedded in Overview */}
-        <div className="border border-[#333333] rounded-xl p-4 bg-[#171717]">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h4 className="text-xs font-bold text-[#F5F5F5] uppercase tracking-wider">Thermal Stability Curve</h4>
-              <p className="text-[11px] text-[#A3A3A3]">Dynamic sensor stream with safe-range envelope</p>
-            </div>
-            <span className="text-[11px] text-[#A3A3A3] font-mono">
-              Last packet: {latestR?.ts ? fmtTs(latestR.ts) : 'Awaiting sensor'}
-            </span>
-          </div>
-
-          <TrendChart 
-            readings={liveReadings} 
-            profile={profile || { t_min_c: 2, t_max_c: 8 }} 
-          />
         </div>
       </div>
 
