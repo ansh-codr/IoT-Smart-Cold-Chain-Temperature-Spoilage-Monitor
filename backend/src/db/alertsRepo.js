@@ -124,7 +124,7 @@ export async function getPrimaryOpenAlert(deviceId) {
 export async function listAlerts(deviceId, limit) {
   const [rows] = await pool.execute(
     `SELECT id, type, severity, started_at, ended_at,
-            CASE WHEN ended_at IS NOT NULL THEN ended_at - started_at ELSE NULL END AS duration_s,
+            CASE WHEN ended_at IS NOT NULL THEN GREATEST(0, CAST(ended_at AS SIGNED) - CAST(started_at AS SIGNED)) ELSE NULL END AS duration_s,
             peak_value, message
        FROM alerts
       WHERE device_id = ?

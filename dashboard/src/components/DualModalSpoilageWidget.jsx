@@ -99,7 +99,7 @@ export function DualModalSpoilageWidget({ spoilageRisk, latestReading, profile, 
               </span>
             </div>
             <p className="text-xs text-[#A3A3A3] mt-0.5">
-              Cross-domain sensor fusion: Arrhenius thermal kinetics ($w_T=55\%$) synthesized with MQ-135 volatile microbial gases ($w_G=45\%$).
+              Cross-domain sensor fusion: Arrhenius thermal kinetics (55% weight) synthesized with MQ-135 volatile microbial gases (45% weight).
             </p>
           </div>
         </div>
@@ -149,7 +149,7 @@ export function DualModalSpoilageWidget({ spoilageRisk, latestReading, profile, 
             <div className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-2 font-bold text-[#F5F5F5]">
                 <Flame size={15} className="text-[#F59E0B]" />
-                <span>Modal Channel A: Arrhenius Thermal Degradation ($w_T = 55\%$)</span>
+                <span>Modal Channel A: Arrhenius Thermal Degradation (55% weight)</span>
               </div>
               <span className="font-mono font-bold text-white">{tComponent.toFixed(1)}%</span>
             </div>
@@ -173,7 +173,7 @@ export function DualModalSpoilageWidget({ spoilageRisk, latestReading, profile, 
             <div className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-2 font-bold text-[#F5F5F5]">
                 <Wind size={15} className="text-[#38BDF8]" />
-                <span>Modal Channel B: Microbial Volatile Gases ($w_G = 45\%$)</span>
+                <span>Modal Channel B: Microbial Volatile Gases (45% weight)</span>
               </div>
               <span className="font-mono font-bold text-white">{gComponent.toFixed(1)}%</span>
             </div>
@@ -208,7 +208,7 @@ export function DualModalSpoilageWidget({ spoilageRisk, latestReading, profile, 
         </div>
 
         <div className="font-mono text-[11px] text-[#737373]">
-          Formula: $\text{SRI} = \min(100, [0.55 \cdot T + 0.45 \cdot G] \times \gamma)$
+          Formula: SRI = min(100, [0.55 &times; T + 0.45 &times; G] &times; &gamma;)
         </div>
       </div>
     </div>
