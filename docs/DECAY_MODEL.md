@@ -147,6 +147,32 @@ if voc_raw > (profile.voc_baseline + profile.voc_spoil_delta)
 - N = 3 is the default; must be configurable via `.env` as `VOC_CONSECUTIVE_N`.
 - The alert clears when the VOC reading drops back below the threshold.
 
+---
+
+## 7.1 Dual-Modal Spoilage Risk Index (SRI) — Temperature & Gas Fusion
+
+Pure Arrhenius models only reflect thermal kinetics, ignoring actual biological decomposition. In reality, multiplying bacterial populations (*Pseudomonas*, *Lactobacillus*) release volatile metabolic gases (ammonia, ethanol, sulfides).
+
+The **Dual-Modal Spoilage Risk Index (SRI)** synthesizes the thermal kinetics with volatile gas emissions into a normalized risk score $\text{SRI} \in [0.0, 100.0\%]$:
+
+$$\text{SRI} = \min\left(100.0, \; \left(w_T \cdot T_{\text{risk}} + w_G \cdot G_{\text{risk}}\right) \times \gamma\right)$$
+
+Where:
+- $w_T = 0.55$ (Thermal Kinetic Weight)
+- $w_G = 0.45$ (Biochemical Gas Weight)
+- $T_{\text{risk}}$: Thermal degradation risk incorporating consumed life percentage and excursion penalties ($T > T_{\max}$ or $T < T_{\min}$).
+- $G_{\text{risk}}$: Gas spoilage risk based on raw ADC elevation above profile baseline: $\Delta\text{VOC} / \text{voc\_spoil\_delta} \times 100$.
+- $\gamma$: Synergistic cross-modal amplification factor ($\ge 1.0$). If thermal excursion and volatile gas elevation occur simultaneously, $\gamma > 1.0$ (up to $1.35$), reflecting rapid exponential microbial colonization.
+
+### Classification
+
+| SRI Score | Classification | Clinical / Logistics Meaning |
+|---|---|---|
+| `0% – 25%` | `nominal` | 🟢 **OPTIMAL INTEGRITY** (Normal metabolic state) |
+| `25% – 50%` | `low` | 🟡 **STABLE / MONITORED** (Standard kinetic ageing) |
+| `50% – 75%` | `moderate` | 🟠 **ELEVATED DEGRADATION RISK** (Thermal excursion or initial volatile emissions) |
+| `75% – 100%` | `critical` | 🔴 **CRITICAL SPOILAGE HAZARD** (Volatile organic breakthrough confirmed) |
+
 ### Humidity Context
 
 `humidity` (from DHT22) is stored and surfaced in the API but **does not directly enter the decay calculation** in Phase 1. High humidity can accelerate microbial growth and affect MQ-135 sensitivity. Both are noted in the dashboard as contextual information.

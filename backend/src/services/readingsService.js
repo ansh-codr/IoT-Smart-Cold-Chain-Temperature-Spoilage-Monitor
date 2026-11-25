@@ -9,7 +9,7 @@ import * as readingsRepo from '../db/readingsRepo.js';
 import * as stateRepo from '../db/stateRepo.js';
 import { evaluate as evaluateAlerts } from './alertService.js';
 import * as sseManager from '../realtime/sseManager.js';
-import { applyReading, recomputeFromReadings, computeRemaining } from './decayModel.js';
+import { applyReading, recomputeFromReadings, computeRemaining, computeSpoilageRiskIndex } from './decayModel.js';
 import { isBuzzerActive } from './buzzerService.js';
 
 export async function ingest(payload) {
@@ -105,25 +105,33 @@ export async function ingest(payload) {
       
       // 7. Broadcast SSE
       if (profile) {
-        const finalState = await stateRepo.getState(pool, deviceId); // Use fresh connection to avoid transaction scope issues for read, or just reuse newState
         const rem = computeRemaining(newState.consumed_life_hours, profile);
+        const latestR = newlyInserted[newlyInserted.length - 1];
+        const sri = computeSpoilageRiskIndex(latestR, profile, {
+          remaining_life_percent: rem.remaining_life_percent,
+          rate_factor: newState.last_rate_factor,
+        });
+
         sseManager.broadcast(deviceId, 'status', {
           device_id: deviceId,
           online: (now - newState.last_ts) <= 30, // Per contract
           remaining_life_hours: rem.remaining_life_hours,
           remaining_life_percent: rem.remaining_life_percent,
           rate_factor: newState.last_rate_factor,
-          active_alert: null // Will be handled by the alert service emitting directly, or could be joined here. For SSE, contract allows null active_alert in status if we emit alert events, but let's query it.
+          spoilage_risk: sri,
+          active_alert: null
         });
       }
 
       // Broadcast 'reading' event
       for (const r of newlyInserted) {
+        const sri = profile ? computeSpoilageRiskIndex(r, profile, null) : null;
         const broadcastReading = {
           ...r,
           ds18b20_temp_c: r.ds18b20_temp_c !== undefined ? r.ds18b20_temp_c : null,
           dht22_temp_c: r.dht22_temp_c !== undefined ? r.dht22_temp_c : null,
           humidity: r.humidity !== undefined ? r.humidity : null,
+          spoilage_risk: sri,
         };
         sseManager.broadcast(deviceId, 'reading', broadcastReading);
       }

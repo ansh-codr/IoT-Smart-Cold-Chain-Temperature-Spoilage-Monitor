@@ -5,7 +5,7 @@ import { pool } from '../db/pool.js';
 import * as stateRepo from '../db/stateRepo.js';
 import * as readingsRepo from '../db/readingsRepo.js';
 import * as alertsRepo from '../db/alertsRepo.js';
-import { computeRemaining } from '../services/decayModel.js';
+import { computeRemaining, computeSpoilageRiskIndex } from '../services/decayModel.js';
 import createHttpError from 'http-errors';
 
 export const statusRouter = Router();
@@ -59,12 +59,17 @@ statusRouter.get('/status', validate(GetStatusQuerySchema, 'query'), async (req,
       activeAlert.peak_value = activeAlert.peak_value !== null ? Number(activeAlert.peak_value) : null;
     }
 
+    const spoilageRisk = (deviceData.profile && latestReading)
+      ? computeSpoilageRiskIndex(latestReading, deviceData.profile, shelfLife)
+      : null;
+
     res.json({
       device_id,
       online,
       last_seen_ts: state ? state.last_ts : 0,
       latest_reading: latestReading,
       shelf_life: shelfLife,
+      spoilage_risk: spoilageRisk,
       active_alert: activeAlert,
       product_profile: deviceData.profile,
       buffered_recovered_count: state ? state.buffered_recovered_count : 0

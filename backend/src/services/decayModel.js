@@ -134,3 +134,84 @@ export function recomputeFromReadings(readings, profile, opts = {}) {
   }
   return state;
 }
+
+/**
+ * Compute the Dual-Modal Spoilage Risk Index (SRI) fusing
+ * Arrhenius kinetic thermal ageing with MQ-135 biochemical gas release.
+ *
+ * @param {object} reading - { temp_c, voc_raw, humidity }
+ * @param {object} profile - { t_min_c, t_max_c, t_ref_c, voc_baseline, voc_spoil_delta }
+ * @param {object|null} shelfLife - { remaining_life_percent, rate_factor }
+ * @returns {object} SRI analysis details
+ */
+export function computeSpoilageRiskIndex(reading, profile, shelfLife = null) {
+  if (!reading || !profile) return null;
+
+  const tempC = Number(reading.temp_c);
+  const vocRaw = Number(reading.voc_raw ?? 0);
+  const tMin = Number(profile.t_min_c);
+  const tMax = Number(profile.t_max_c);
+  const vocBaseline = Number(profile.voc_baseline ?? 500);
+  const vocSpoilDelta = Math.max(1, Number(profile.voc_spoil_delta ?? 800));
+
+  // 1. Thermal Component (0 - 100)
+  let excursionPenalty = 0;
+  if (tempC > tMax) {
+    const deltaT = tempC - tMax;
+    const rateFactor = shelfLife?.rate_factor ?? computeRateFactor(tempC, profile);
+    excursionPenalty = Math.min(60, deltaT * 4.0) + Math.min(30, Math.max(0, rateFactor - 1.0) * 8.0);
+  } else if (tempC < tMin) {
+    const deltaT = tMin - tempC;
+    excursionPenalty = Math.min(70, deltaT * 12.0); // Cold-damage / freezing denaturation
+  }
+
+  const consumedPct = shelfLife?.remaining_life_percent != null
+    ? Math.max(0, 100 - Number(shelfLife.remaining_life_percent))
+    : 0;
+
+  const thermalComponent = Math.min(100, (consumedPct * 0.4) + excursionPenalty);
+
+  // 2. Biochemical Gas Component (0 - 100)
+  const deltaVoc = Math.max(0, vocRaw - vocBaseline);
+  const gasComponent = Math.min(100, (deltaVoc / vocSpoilDelta) * 100);
+
+  // 3. Synergistic Coupling Factor (gamma >= 1.0)
+  let synergyFactor = 1.0;
+  if (thermalComponent > 25 && gasComponent > 25) {
+    synergyFactor = 1.0 + Math.min(0.35, ((thermalComponent * gasComponent) / 10000) * 0.5);
+  }
+
+  // 4. Synthesized Dual-Modal Score (0 - 100)
+  const baseScore = (0.55 * thermalComponent) + (0.45 * gasComponent);
+  const rawScore = baseScore * synergyFactor;
+  const sriScore = Math.min(100, Math.round(rawScore * 10) / 10);
+
+  // 5. Clinical / Logistics Classification
+  let level = 'nominal';
+  let statusLabel = 'OPTIMAL INTEGRITY';
+  let details = 'Product biological envelope verified within safe reference bounds';
+
+  if (sriScore >= 75) {
+    level = 'critical';
+    statusLabel = 'CRITICAL SPOILAGE HAZARD';
+    details = 'Active volatile biomarker breakthrough detected co-occurring with thermal degradation';
+  } else if (sriScore >= 50) {
+    level = 'moderate';
+    statusLabel = 'ELEVATED SPOILAGE RISK';
+    details = 'Early metabolic volatile emissions or safe thermal envelope breached';
+  } else if (sriScore >= 25) {
+    level = 'low';
+    statusLabel = 'STABLE / AGING';
+    details = 'Nominal Arrhenius kinetic degradation under active monitoring';
+  }
+
+  return {
+    sri_score: sriScore,
+    level,
+    status_label: statusLabel,
+    thermal_component: Math.round(thermalComponent * 10) / 10,
+    gas_component: Math.round(gasComponent * 10) / 10,
+    synergy_factor: Math.round(synergyFactor * 100) / 100,
+    details
+  };
+}

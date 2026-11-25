@@ -234,6 +234,15 @@ Returns the latest reading and computed shelf-life state for a device.
     "rate_factor": 1.12,
     "consumed_life_hours": 25.5
   },
+  "spoilage_risk": {
+    "sri_score": 18.4,
+    "level": "nominal",
+    "status_label": "OPTIMAL INTEGRITY",
+    "thermal_component": 15.2,
+    "gas_component": 22.0,
+    "synergy_factor": 1.0,
+    "details": "Product integrity preserved within verified safe bounds"
+  },
   "active_alert": {
     "id": 7,
     "type": "TEMP_HIGH",

@@ -33,6 +33,7 @@ import { ShelfLifeGauge } from './components/ShelfLifeGauge.jsx';
 import { TrendChart } from './components/TrendChart.jsx';
 import { AlertBanner } from './components/AlertBanner.jsx';
 import { AlertTable } from './components/AlertTable.jsx';
+import { DualModalSpoilageWidget } from './components/DualModalSpoilageWidget.jsx';
 import { Volume2 } from 'lucide-react';
 
 import {
@@ -288,6 +289,16 @@ function DashboardContent() {
                       : 'Ageing at ideal rate (1.0×)'
                     : null
                 }
+              />
+            </section>
+
+            {/* Dual-Modal Spoilage Risk Index Analyzer */}
+            <section>
+              <DualModalSpoilageWidget
+                spoilageRisk={status?.spoilage_risk}
+                latestReading={latest}
+                profile={profile}
+                rateFactor={shelfLife?.rate_factor ?? 1.0}
               />
             </section>
 

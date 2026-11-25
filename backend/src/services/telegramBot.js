@@ -10,7 +10,7 @@ import { pool } from '../db/pool.js';
 import * as stateRepo from '../db/stateRepo.js';
 import * as readingsRepo from '../db/readingsRepo.js';
 import * as alertsRepo from '../db/alertsRepo.js';
-import { computeRemaining } from './decayModel.js';
+import { computeRemaining, computeSpoilageRiskIndex } from './decayModel.js';
 import { triggerBuzzer, clearBuzzer, isBuzzerActive } from './buzzerService.js';
 import {
   formatAlertNotification,
@@ -111,7 +111,19 @@ async function executeStatus(chatId, devId) {
     shelfLife = computeRemaining(state.consumed_life_hours, deviceData.profile);
     shelfLife.rate_factor = state.last_rate_factor;
   }
-  const msg = formatStatusMessage(devId, { online, latest_reading: latestReading, product_profile: deviceData.profile, shelf_life: shelfLife, active_alert: activeAlert });
+
+  const spoilageRisk = (deviceData.profile && latestReading)
+    ? computeSpoilageRiskIndex(latestReading, deviceData.profile, shelfLife)
+    : null;
+
+  const msg = formatStatusMessage(devId, {
+    online,
+    latest_reading: latestReading,
+    product_profile: deviceData.profile,
+    shelf_life: shelfLife,
+    spoilage_risk: spoilageRisk,
+    active_alert: activeAlert
+  });
   const keyboard = await getDeviceButtons('status');
   await sendMessage(chatId, msg, 'Markdown', keyboard);
 }

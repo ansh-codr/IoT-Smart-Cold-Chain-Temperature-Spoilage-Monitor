@@ -23,6 +23,7 @@ import {
 import { TrendChart } from '../components/TrendChart.jsx';
 import { ShelfLifeSpecimen } from '../components/ShelfLifeSpecimen.jsx';
 import { ShelfLifeGauge } from '../components/ShelfLifeGauge.jsx';
+import { DualModalSpoilageWidget } from '../components/DualModalSpoilageWidget.jsx';
 import { tempColor, tempBadge, vocColor, vocBadge, shelfLifeColor, fmtTs } from '../utils/helpers.js';
 
 export function OverviewView({ onNavigate, liveReadings = [], activeDeviceId, activeStatus, onSelectDevice }) {
@@ -327,6 +328,14 @@ export function OverviewView({ onNavigate, liveReadings = [], activeDeviceId, ac
             </div>
           </div>
         </div>
+
+        {/* Dual-Modal Spoilage Risk Index Analyzer */}
+        <DualModalSpoilageWidget 
+          spoilageRisk={telemetry?.spoilage_risk || activeStatus?.spoilage_risk}
+          latestReading={latestR}
+          profile={profile}
+          rateFactor={telemetry?.rate_factor ?? activeStatus?.shelf_life?.rate_factor ?? 1.0}
+        />
 
         {/* Real-time Trend Chart embedded in Overview */}
         <div className="border border-[#333333] rounded-xl p-4 bg-[#171717]">

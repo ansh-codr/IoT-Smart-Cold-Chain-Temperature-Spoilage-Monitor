@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { pool } from '../db/pool.js';
 import { requireAuth } from '../middleware/auth.js';
+import { computeSpoilageRiskIndex, computeRemaining } from '../services/decayModel.js';
 
 export const overviewRouter = Router();
 
@@ -138,7 +139,15 @@ overviewRouter.get('/overview', requireAuth, async (req, res, next) => {
           ea_kj_per_mol: Number(profRows[0].ea_kj_per_mol)
         } : null,
         rate_factor: primaryDevice.last_rate_factor != null ? Number(primaryDevice.last_rate_factor) : 1.0,
-        consumed_life_hours: primaryDevice.consumed_life_hours != null ? Number(primaryDevice.consumed_life_hours) : 0
+        consumed_life_hours: primaryDevice.consumed_life_hours != null ? Number(primaryDevice.consumed_life_hours) : 0,
+        spoilage_risk: (profRows[0] && latestReading)
+          ? computeSpoilageRiskIndex(latestReading, profRows[0], {
+              remaining_life_percent: profRows[0].shelf_life_hours_at_ref
+                ? computeRemaining(Number(primaryDevice.consumed_life_hours || 0), profRows[0]).remaining_life_percent
+                : 100,
+              rate_factor: Number(primaryDevice.last_rate_factor || 1.0)
+            })
+          : null
       };
     }
 

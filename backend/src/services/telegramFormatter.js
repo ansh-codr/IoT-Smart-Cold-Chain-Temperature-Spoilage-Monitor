@@ -54,6 +54,15 @@ export function formatStatusMessage(deviceId, data) {
     msg += `• *Aging Burn Rate*: ${factor}× reference speed\n`;
   }
 
+  if (data.spoilage_risk) {
+    const sri = data.spoilage_risk;
+    const badge = sri.level === 'critical' ? '🔴' : sri.level === 'moderate' ? '🟠' : sri.level === 'low' ? '🟡' : '🟢';
+    msg += `• *Dual-Modal Spoilage Risk*: ${badge} *${sri.sri_score}%* (${sri.status_label})\n`;
+    if (sri.synergy_factor > 1.0) {
+      msg += `  ↳ _Cross-modal kinetic synergy active (${sri.synergy_factor}×)_\n`;
+    }
+  }
+
   if (data.active_alert) {
     msg += `\n⚠️ *Active Warning*: \`${data.active_alert.type}\` (${data.active_alert.severity})\n`;
   }
