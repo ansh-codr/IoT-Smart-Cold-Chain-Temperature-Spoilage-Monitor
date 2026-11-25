@@ -537,8 +537,9 @@ Trigger or test the remote cabin buzzer on the physical ESP32 node.
 #### Request Body (Optional)
 ```json
 {
-  "duration_s": 5,
-  "pattern": "alarm"
+  "duration_s": 30,
+  "pattern": "alarm",
+  "action": "start"
 }
 ```
 
@@ -549,6 +550,22 @@ Trigger or test the remote cabin buzzer on the physical ESP32 node.
   "device_id": "node-03",
   "buzzer_active": true,
   "message": "Cabin alarm command queued for delivery to ESP32 node"
+}
+```
+
+---
+
+### `DELETE /api/devices/:device_id/buzzer`
+
+Immediately stop and silence the remote cabin buzzer on the physical ESP32 node.
+
+#### Success — 200
+```json
+{
+  "success": true,
+  "device_id": "node-03",
+  "buzzer_active": false,
+  "message": "Cabin alarm stopped immediately"
 }
 ```
 

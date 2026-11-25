@@ -105,8 +105,9 @@ export const GetReportQuerySchema = z.object({
 
 // ─── POST /api/devices/:device_id/buzzer body ────────────────────────────────
 export const PostBuzzerBodySchema = z.object({
-  duration_s:   z.coerce.number().int().min(1).max(60).optional().default(10),
+  duration_s:   z.coerce.number().int().min(0).max(120).optional().default(30),
   pattern:      z.string().optional().default('alarm'),
+  action:       z.enum(['start', 'stop']).optional().default('start'),
   triggered_by: z.string().optional().default('user'),
 });
 

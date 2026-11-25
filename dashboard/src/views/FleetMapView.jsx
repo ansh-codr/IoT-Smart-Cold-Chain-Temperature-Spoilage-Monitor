@@ -15,9 +15,11 @@ import {
   Compass
 } from 'lucide-react';
 
-export function FleetMapView({ activeDeviceId = 'node-03', liveTemp = 26.1, onTriggerBuzzer }) {
+export function FleetMapView({ activeDeviceId = 'node-03', liveTemp = 26.1, onTriggerBuzzer, buzzerActive = false }) {
   const [selectedTruck, setSelectedTruck] = useState('TRK-809');
-  const [buzzerTriggered, setBuzzerTriggered] = useState(false);
+  const [localBuzzer, setLocalBuzzer] = useState(false);
+
+  const isBuzzerSounding = buzzerActive || localBuzzer;
 
   const fleet = [
     {
@@ -97,17 +99,23 @@ export function FleetMapView({ activeDeviceId = 'node-03', liveTemp = 26.1, onTr
   const current = fleet.find(f => f.id === selectedTruck) || fleet[0];
 
   const handleBuzzerClick = async (nodeId) => {
-    setBuzzerTriggered(true);
     if (onTriggerBuzzer) {
       await onTriggerBuzzer(nodeId);
+      return;
+    }
+
+    if (isBuzzerSounding) {
+      setLocalBuzzer(false);
+      await fetch(`/api/devices/${nodeId}/buzzer`, { method: 'DELETE' });
     } else {
+      setLocalBuzzer(true);
       await fetch(`/api/devices/${nodeId}/buzzer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ duration_s: 20, triggered_by: 'fleet_map' })
+        body: JSON.stringify({ duration_s: 30, action: 'start', triggered_by: 'fleet_map' })
       });
+      setTimeout(() => setLocalBuzzer(false), 30000);
     }
-    setTimeout(() => setBuzzerTriggered(false), 20000);
   };
 
   return (
@@ -298,21 +306,21 @@ export function FleetMapView({ activeDeviceId = 'node-03', liveTemp = 26.1, onTr
             <div className="space-y-2 pt-2 border-t border-[#2e2e2e]">
               <div className="flex items-center justify-between text-[11px]">
                 <span className="font-bold text-[#A3A3A3] uppercase tracking-wider">Cabin Audio Alarm</span>
-                <span className={`font-mono text-[10px] font-bold ${buzzerTriggered ? 'text-[#EF4444]' : 'text-[#737373]'}`}>
-                  {buzzerTriggered ? '● SOUNDING (20s)' : 'STANDBY'}
+                <span className={`font-mono text-[10px] font-bold ${isBuzzerSounding ? 'text-[#EF4444]' : 'text-[#737373]'}`}>
+                  {isBuzzerSounding ? '● SOUNDING (Continuous / 30s max)' : 'STANDBY'}
                 </span>
               </div>
 
               <button
                 onClick={() => handleBuzzerClick(current.nodeId)}
-                className={`w-full py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-lg ${
-                  buzzerTriggered
+                className={`w-full py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-lg cursor-pointer ${
+                  isBuzzerSounding
                     ? 'bg-[#EF4444] hover:bg-[#dc2626] text-white animate-pulse shadow-[#EF4444]/30'
                     : 'bg-[#EF4444]/15 hover:bg-[#EF4444]/25 text-[#EF4444] border border-[#EF4444]/40'
                 }`}
               >
-                <Volume2 size={16} className={buzzerTriggered ? 'animate-bounce' : ''} />
-                <span>{buzzerTriggered ? 'Alarm Active on Hardware (Buzzing)' : '🚨 Sound Driver Cabin Buzzer'}</span>
+                <Volume2 size={16} className={isBuzzerSounding ? 'animate-bounce' : ''} />
+                <span>{isBuzzerSounding ? '🔕 Stop Cabin Alarm' : '🚨 Sound Driver Cabin Buzzer'}</span>
               </button>
 
               <p className="text-[10px] text-[#737373] text-center leading-relaxed">

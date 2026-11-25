@@ -6,7 +6,7 @@ import * as stateRepo from '../db/stateRepo.js';
 import * as readingsRepo from '../db/readingsRepo.js';
 import { recomputeFromReadings, computeRemaining } from '../services/decayModel.js';
 import * as sseManager from '../realtime/sseManager.js';
-import { triggerBuzzer, getBuzzerStatus } from '../services/buzzerService.js';
+import { triggerBuzzer, clearBuzzer, getBuzzerStatus } from '../services/buzzerService.js';
 import createHttpError from 'http-errors';
 
 export const devicesRouter = Router();
@@ -79,8 +79,25 @@ devicesRouter.put('/:device_id/profile', validate(PutProfileBodySchema, 'body'),
 devicesRouter.post('/:device_id/buzzer', validate(PostBuzzerBodySchema, 'body'), async (req, res, next) => {
   try {
     const { device_id } = req.params;
-    const duration = req.body?.duration_s || 10;
+    const action = req.body?.action || 'start';
+    const duration = req.body?.duration_s ?? 30;
     const triggeredBy = req.body?.triggered_by || 'dashboard';
+
+    if (action === 'stop' || duration === 0) {
+      clearBuzzer(device_id);
+      sseManager.broadcast(device_id, 'buzzer', {
+        device_id,
+        active: false,
+        stopped: true,
+        cleared_at: Date.now()
+      });
+      return res.json({
+        success: true,
+        device_id,
+        buzzer_active: false,
+        message: 'Cabin alarm stopped immediately'
+      });
+    }
 
     triggerBuzzer(device_id, duration, triggeredBy);
 
@@ -97,6 +114,28 @@ devicesRouter.post('/:device_id/buzzer', validate(PostBuzzerBodySchema, 'body'),
       device_id,
       buzzer_active: true,
       message: 'Cabin alarm command queued for delivery to ESP32 node'
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// DELETE /api/devices/:device_id/buzzer (Immediate Stop)
+devicesRouter.delete('/:device_id/buzzer', async (req, res, next) => {
+  try {
+    const { device_id } = req.params;
+    clearBuzzer(device_id);
+    sseManager.broadcast(device_id, 'buzzer', {
+      device_id,
+      active: false,
+      stopped: true,
+      cleared_at: Date.now()
+    });
+    res.json({
+      success: true,
+      device_id,
+      buzzer_active: false,
+      message: 'Cabin alarm stopped immediately'
     });
   } catch (err) {
     next(err);

@@ -60,23 +60,38 @@ function DashboardContent() {
   const [profileChanging, setProfileChanging] = useState(false);
   const [buzzerActive, setBuzzerActive] = useState(false);
   const [buzzerLoading, setBuzzerLoading] = useState(false);
+  const buzzerTimerRef = React.useRef(null);
 
-  const handleTriggerBuzzer = useCallback(async (devId = deviceId) => {
+  const handleToggleBuzzer = useCallback(async (devId = deviceId) => {
     setBuzzerLoading(true);
     try {
-      await fetch(`/api/devices/${devId}/buzzer`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ duration_s: 20, triggered_by: 'dashboard' })
-      });
-      setBuzzerActive(true);
-      setTimeout(() => setBuzzerActive(false), 20000);
+      if (buzzerActive) {
+        // Immediate stop request
+        if (buzzerTimerRef.current) clearTimeout(buzzerTimerRef.current);
+        await fetch(`/api/devices/${devId}/buzzer`, {
+          method: 'DELETE'
+        });
+        setBuzzerActive(false);
+      } else {
+        // Start 30-second continuous alarm
+        await fetch(`/api/devices/${devId}/buzzer`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ duration_s: 30, action: 'start', triggered_by: 'dashboard' })
+        });
+        setBuzzerActive(true);
+
+        if (buzzerTimerRef.current) clearTimeout(buzzerTimerRef.current);
+        buzzerTimerRef.current = setTimeout(() => {
+          setBuzzerActive(false);
+        }, 30000); // Auto-stops after 30 seconds
+      }
     } catch (e) {
-      console.error('Buzzer trigger failed:', e);
+      console.error('Buzzer toggle failed:', e);
     } finally {
       setBuzzerLoading(false);
     }
-  }, [deviceId]);
+  }, [deviceId, buzzerActive]);
 
   const {
     readings,
@@ -165,7 +180,8 @@ function DashboardContent() {
           <FleetMapView 
             activeDeviceId={deviceId} 
             liveTemp={latest?.temp_c != null ? Number(latest.temp_c) : 26.1} 
-            onTriggerBuzzer={handleTriggerBuzzer}
+            onTriggerBuzzer={handleToggleBuzzer}
+            buzzerActive={buzzerActive}
           />
         );
       case 'reports':
@@ -347,19 +363,19 @@ function DashboardContent() {
               </button>
             </div>
 
-            {/* Emergency Hardware Cabin Buzzer Actuator */}
+            {/* Emergency Hardware Cabin Buzzer Actuator Toggle */}
             <button
-              onClick={() => handleTriggerBuzzer(deviceId)}
+              onClick={() => handleToggleBuzzer(deviceId)}
               disabled={buzzerLoading}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 transition-all border shadow-sm ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 transition-all border shadow-sm cursor-pointer ${
                 buzzerActive
-                  ? 'bg-[#EF4444] text-white border-white animate-pulse shadow-[#EF4444]/40'
+                  ? 'bg-[#EF4444] text-white border-white animate-pulse shadow-[#EF4444]/40 hover:bg-[#dc2626]'
                   : 'bg-[#EF4444]/15 hover:bg-[#EF4444]/25 text-[#EF4444] border-[#EF4444]/40'
               }`}
-              title="Trigger remote hardware cabin alarm on ESP32 (GPIO 25)"
+              title={buzzerActive ? "Click to immediately STOP hardware cabin buzzer" : "Click to sound continuous 30-second emergency buzzer"}
             >
               <Volume2 size={13} className={buzzerActive ? 'animate-bounce' : ''} />
-              <span className="hidden lg:inline">{buzzerActive ? 'Cabin Alarm Active!' : '🚨 Trigger Buzzer'}</span>
+              <span>{buzzerActive ? '🔕 Stop Cabin Alarm' : '🚨 Sound Buzzer'}</span>
             </button>
 
             {/* Profile Dropdown */}
