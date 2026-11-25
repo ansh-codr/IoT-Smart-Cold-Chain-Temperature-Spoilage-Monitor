@@ -12,6 +12,7 @@ import { pool } from '../db/pool.js';
 import * as alertsRepo from '../db/alertsRepo.js';
 import * as readingsRepo from '../db/readingsRepo.js';
 import * as sseManager from '../realtime/sseManager.js';
+import { notifyAlert } from './telegramBot.js';
 
 const VOC_CONSECUTIVE_N = parseInt(process.env.VOC_CONSECUTIVE_N ?? '3', 10);
 const OFFLINE_ALERT_S = parseInt(process.env.OFFLINE_ALERT_S ?? '120', 10);
@@ -36,7 +37,7 @@ async function processAlertCondition(conn, deviceId, type, conditionMet, severit
     if (!openAlert) {
       // Open new alert
       const id = await alertsRepo.openAlert(conn, deviceId, type, severity, ts, value, message);
-      sseManager.broadcast(deviceId, 'alert', {
+      const alertPayload = {
         device_id: deviceId,
         alert_id: id,
         type,
@@ -45,6 +46,10 @@ async function processAlertCondition(conn, deviceId, type, conditionMet, severit
         started_at: ts,
         peak_value: value,
         message
+      };
+      sseManager.broadcast(deviceId, 'alert', alertPayload);
+      notifyAlert(deviceId, alertPayload).catch(err => {
+        console.warn('[alertService] Telegram notification failed:', err.message);
       });
     } else {
       // Escalate if needed (warning -> critical) or update peak_value
@@ -67,7 +72,7 @@ async function processAlertCondition(conn, deviceId, type, conditionMet, severit
         await alertsRepo.escalateAlert(conn, openAlert.id, newSeverity, newPeak, message);
         
         if (newSeverity !== openAlert.severity) {
-          sseManager.broadcast(deviceId, 'alert', {
+          const escalatedPayload = {
             device_id: deviceId,
             alert_id: openAlert.id,
             type,
@@ -76,6 +81,10 @@ async function processAlertCondition(conn, deviceId, type, conditionMet, severit
             started_at: openAlert.started_at,
             peak_value: newPeak,
             message
+          };
+          sseManager.broadcast(deviceId, 'alert', escalatedPayload);
+          notifyAlert(deviceId, escalatedPayload).catch(err => {
+            console.warn('[alertService] Telegram notification failed:', err.message);
           });
         }
       }

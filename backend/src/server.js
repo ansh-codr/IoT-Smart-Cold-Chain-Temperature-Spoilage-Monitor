@@ -9,6 +9,7 @@
 import 'dotenv/config';
 import app from './app.js';
 import { startOfflineWatcher, stopOfflineWatcher } from './services/offlineWatcher.js';
+import { startTelegramBot, stopTelegramBot } from './services/telegramBot.js';
 
 const HOST = process.env.HOST ?? '0.0.0.0';
 const PORT = parseInt(process.env.PORT ?? '3000', 10);
@@ -17,6 +18,7 @@ const server = app.listen(PORT, HOST, () => {
   console.log(`[server] Listening on http://${HOST}:${PORT}`);
   console.log(`[server] Decay model: ${process.env.DECAY_MODEL ?? 'arrhenius'}`);
   startOfflineWatcher();
+  startTelegramBot();
 });
 
 // Graceful shutdown: close the HTTP server and DB pool on SIGTERM/SIGINT.
@@ -24,6 +26,7 @@ const server = app.listen(PORT, HOST, () => {
 const shutdown = (signal) => {
   console.log(`[server] ${signal} received — shutting down gracefully`);
   stopOfflineWatcher();
+  stopTelegramBot();
   server.close(async () => {
     try {
       const { pool } = await import('./db/pool.js');

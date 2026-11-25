@@ -1,6 +1,7 @@
 import { pool } from '../db/pool.js';
 import * as alertsRepo from '../db/alertsRepo.js';
 import * as sseManager from '../realtime/sseManager.js';
+import { notifyAlert } from './telegramBot.js';
 
 const OFFLINE_ALERT_S = parseInt(process.env.OFFLINE_ALERT_S ?? '120', 10);
 
@@ -32,7 +33,7 @@ export async function checkOfflineForDevice(deviceId, lastTs, now) {
         );
         await conn.commit();
         
-        sseManager.broadcast(deviceId, 'alert', {
+        const alertPayload = {
           device_id: deviceId,
           alert_id: id,
           type: 'DEVICE_OFFLINE',
@@ -41,6 +42,10 @@ export async function checkOfflineForDevice(deviceId, lastTs, now) {
           started_at: lastTs + OFFLINE_ALERT_S,
           peak_value: null,
           message: `No reading received for > ${OFFLINE_ALERT_S} seconds`
+        };
+        sseManager.broadcast(deviceId, 'alert', alertPayload);
+        notifyAlert(deviceId, alertPayload).catch(err => {
+          console.warn('[offlineWatcher] Telegram notification failed:', err.message);
         });
       } else {
         await conn.rollback();

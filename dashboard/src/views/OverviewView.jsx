@@ -25,16 +25,17 @@ import { ShelfLifeSpecimen } from '../components/ShelfLifeSpecimen.jsx';
 import { ShelfLifeGauge } from '../components/ShelfLifeGauge.jsx';
 import { tempColor, tempBadge, vocColor, vocBadge, shelfLifeColor, fmtTs } from '../utils/helpers.js';
 
-export function OverviewView({ onNavigate, liveReadings = [] }) {
+export function OverviewView({ onNavigate, liveReadings = [], activeDeviceId, activeStatus, onSelectDevice }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastFetchTime, setLastFetchTime] = useState(Date.now());
 
-  const loadOverview = async () => {
+  const loadOverview = async (devId = activeDeviceId) => {
     try {
       setRefreshing(true);
-      const res = await fetch('/api/overview');
+      const url = devId ? `/api/overview?device_id=${encodeURIComponent(devId)}` : '/api/overview';
+      const res = await fetch(url);
       if (res.ok) {
         const json = await res.json();
         setData(json);
@@ -49,10 +50,10 @@ export function OverviewView({ onNavigate, liveReadings = [] }) {
   };
 
   useEffect(() => {
-    loadOverview();
-    const interval = setInterval(loadOverview, 10000); // 10s polling for background stats
+    loadOverview(activeDeviceId);
+    const interval = setInterval(() => loadOverview(activeDeviceId), 10000); // 10s polling for background stats
     return () => clearInterval(interval);
-  }, []);
+  }, [activeDeviceId]);
 
   if (loading) {
     return (
@@ -77,8 +78,10 @@ export function OverviewView({ onNavigate, liveReadings = [] }) {
   const isTelemetryUnavailable = !liveLatest && (readingAgeS === null || readingAgeS > 300);
 
   // Primary sensor metrics (prefer real-time live SSE readings over polled snapshot)
-  const latestR = liveLatest || telemetry?.latest_reading;
-  const profile = telemetry?.profile;
+  const currentDeviceId = activeDeviceId || telemetry?.device_id || 'node-03';
+  const latestR = liveLatest || activeStatus?.latest_reading || telemetry?.latest_reading;
+  const profile = activeStatus?.product_profile || telemetry?.profile;
+  const shelfLife = activeStatus?.shelf_life || telemetry?.shelf_life;
   const tColor = tempColor(latestR?.temp_c, profile);
   const vColor = vocColor(latestR?.voc_raw, profile);
 
@@ -174,7 +177,7 @@ export function OverviewView({ onNavigate, liveReadings = [] }) {
       </div>
 
       {/* Primary KPI Metrics Grid */}
-      <ShelfLifeSpecimen percent={telemetry?.remaining_life_percent ?? telemetry?.shelf_life?.remaining_life_percent} rateFactor={telemetry?.rate_factor ?? 1} />
+      <ShelfLifeSpecimen percent={shelfLife?.remaining_life_percent ?? telemetry?.remaining_life_percent} rateFactor={shelfLife?.rate_factor ?? telemetry?.rate_factor ?? 1} />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {cards.map((c, i) => {
           const Icon = c.icon;
@@ -214,7 +217,7 @@ export function OverviewView({ onNavigate, liveReadings = [] }) {
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-bold text-[#F5F5F5]">Live IoT Sensor Telemetry</h3>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#242424] text-[#16A34A] border border-[#333333]">
-                  Node: {telemetry?.device_id || 'node-01'}
+                  Node: {currentDeviceId}
                 </span>
               </div>
               <p className="text-xs text-[#A3A3A3]">
@@ -224,7 +227,7 @@ export function OverviewView({ onNavigate, liveReadings = [] }) {
           </div>
 
           <button
-            onClick={() => onNavigate('iot')}
+            onClick={() => onNavigate('node')}
             className="px-3 py-1.5 rounded-lg bg-[#242424] hover:bg-[#333333] text-[#F5F5F5] text-xs font-semibold flex items-center gap-1.5 border border-[#333333] transition-colors"
           >
             <span>Full Node Console</span>

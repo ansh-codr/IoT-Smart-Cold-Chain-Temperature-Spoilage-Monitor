@@ -40,7 +40,7 @@ import {
 } from './utils/helpers.js';
 
 const DEVICE_STORAGE_KEY = 'coldchain_device_id';
-const DEFAULT_DEVICE = 'node-01';
+const DEFAULT_DEVICE = 'node-03';
 const API_BASE = '/api';
 
 function DashboardContent() {
@@ -49,9 +49,10 @@ function DashboardContent() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Device selection
-  const [deviceId, setDeviceId] = useState(
-    () => localStorage.getItem(DEVICE_STORAGE_KEY) || DEFAULT_DEVICE
-  );
+  const [deviceId, setDeviceId] = useState(() => {
+    const saved = localStorage.getItem(DEVICE_STORAGE_KEY);
+    return (saved && saved !== 'node-01') ? saved : DEFAULT_DEVICE;
+  });
   const [deviceInput, setDeviceInput] = useState(deviceId);
   const [profileChanging, setProfileChanging] = useState(false);
 
@@ -90,7 +91,7 @@ function DashboardContent() {
     if (trimmed) setDeviceId(trimmed);
   };
 
-  const latest = readings[readings.length - 1] ?? null;
+  const latest = readings[readings.length - 1] ?? status?.latest_reading ?? null;
   const profile = status?.product_profile ?? null;
   const shelfLife = status?.shelf_life ?? null;
   const online = status?.online ?? false;
@@ -104,7 +105,18 @@ function DashboardContent() {
   const renderActiveView = () => {
     switch (activeTab) {
       case 'overview':
-        return <OverviewView onNavigate={setActiveTab} liveReadings={readings} />;
+        return (
+          <OverviewView
+            onNavigate={setActiveTab}
+            liveReadings={readings}
+            activeDeviceId={deviceId}
+            activeStatus={status}
+            onSelectDevice={id => {
+              setDeviceId(id);
+              setDeviceInput(id);
+            }}
+          />
+        );
       case 'inventory':
         return <InventoryView />;
       case 'shipments':
@@ -169,7 +181,8 @@ function DashboardContent() {
             </div>
           </div>
         );
-      case 'iot': return <OverviewView onNavigate={setActiveTab} liveReadings={readings} />;
+      case 'node':
+      case 'iot':
       default:
         return (
           <div className="space-y-6">
@@ -306,8 +319,9 @@ function DashboardContent() {
                 className="bg-[#242424] border border-[#333333] rounded-lg px-2.5 py-1.5 text-xs text-[#F5F5F5] w-28 focus:outline-none focus:border-[#16A34A] font-mono"
                 value={deviceInput}
                 onChange={e => setDeviceInput(e.target.value)}
+                onBlur={applyDevice}
                 onKeyDown={e => e.key === 'Enter' && applyDevice()}
-                placeholder="node-01"
+                placeholder="node-03"
               />
               <button
                 onClick={applyDevice}

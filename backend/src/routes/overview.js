@@ -67,9 +67,9 @@ overviewRouter.get('/overview', requireAuth, async (req, res, next) => {
       [orgId]
     );
 
-    // 7. IoT Telemetry overview for the active organization's primary node
-    // Get primary device (or first available)
-    const primaryDevice = devRows[0] || null;
+    // 7. IoT Telemetry overview for the requested or primary node
+    const reqDeviceId = req.query.device_id;
+    const primaryDevice = (reqDeviceId ? devRows.find(d => d.device_id === reqDeviceId) : null) || devRows[0] || null;
     let telemetrySnapshot = null;
 
     if (primaryDevice) {
@@ -154,6 +154,7 @@ overviewRouter.get('/overview', requireAuth, async (req, res, next) => {
         pending_replacements: Number(repRows[0].pending_replacements)
       },
       telemetry: telemetrySnapshot,
+      devices: devRows.map(d => ({ device_id: d.device_id, name: d.name })),
       server_time: now
     });
   } catch (err) {

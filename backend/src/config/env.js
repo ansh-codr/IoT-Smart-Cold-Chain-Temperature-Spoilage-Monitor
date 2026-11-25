@@ -24,6 +24,9 @@ const EnvSchema = z.object({
   SSE_KEEPALIVE_MS:   z.coerce.number().int().positive().default(15000),
   ONLINE_THRESHOLD_S: z.coerce.number().int().positive().default(30),
   OFFLINE_ALERT_S:    z.coerce.number().int().positive().default(120),
+  TELEGRAM_ENABLED:   z.coerce.boolean().default(false),
+  TELEGRAM_BOT_TOKEN: z.string().optional().default(''),
+  TELEGRAM_CHAT_ID:   z.string().optional().default(''),
 });
 
 const parsed = EnvSchema.safeParse(process.env);
